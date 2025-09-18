@@ -53,22 +53,86 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
+        var moves = new HashSet<ChessMove>();
         switch (this.type) {
             case BISHOP:
-                return piece.getBishopMoves(board, myPosition);
+                int[][] bishCoords = {{1,1},{-1,1},{-1,-1},{1,-1}};
+                for (int[] coord : bishCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                    moves.addAll(piece.getBishopRookQueenMoves(board, myPosition, myPosition.getRow(), myPosition.getColumn(),x,y));
+                }
+                return moves;
+            case ROOK:
+                int[][] rookCoords = {{1,0},{-1,0},{0,1},{0,-1}};
+                for (int[] coord : rookCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                    moves.addAll(piece.getBishopRookQueenMoves(board, myPosition, myPosition.getRow(), myPosition.getColumn(),x,y));
+                }
+                return moves;
+            case QUEEN:
+                int[][] queenCoords = {{1,1},{-1,1},{-1,-1},{1,-1},{1,0},{-1,0},{0,1},{0,-1}};
+                for (int[] coord : queenCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                    moves.addAll(piece.getBishopRookQueenMoves(board, myPosition, myPosition.getRow(), myPosition.getColumn(),x,y));
+                }
+                return moves;
             default:
                 return null;
         }
     }
 
-   private Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition myPosition) {
+   private Collection<ChessMove> getBishopRookQueenMoves(ChessBoard board, ChessPosition myPosition, int row, int col, int x, int y) {
+        //function that can be called recursively to check each diagonal line
+        var moves = new HashSet<ChessMove>();
+        var newPosition = new ChessPosition(row,col);
+
+        if (((row > 8) || (col > 8)) || ((row < 1) || (col < 1))){
+            return moves;
+        }
+
+       ChessPiece piece = board.getPiece(myPosition);
+       ChessPiece newPiece = board.getPiece(newPosition);
+
+        if (row == myPosition.getRow() & col == myPosition.getColumn()){
+            moves.addAll(getBishopRookQueenMoves(board,myPosition,row+x, col+y, x, y));
+            return moves;
+        }
+        if (newPiece != null){
+            if (newPiece.getTeamColor()==piece.getTeamColor()){
+                return moves;
+            }
+            else{
+                moves.add(new ChessMove(myPosition,new ChessPosition(row,col),null));
+                return moves;
+            }
+        }
+
+        moves.add(new ChessMove(myPosition,new ChessPosition(row,col),null));
+        moves.addAll(getBishopRookQueenMoves(board,myPosition,row+x, col+y, x, y));
+        return moves;
+    }
+
+    private Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
+        //function that can be called recursively to check each diagonal line
         var moves = new HashSet<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
+        return moves;
+    }
 
-        moves.add(new ChessMove(myPosition,myPosition,null));
+    private Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
+        //function that can be called recursively to check each diagonal line
+        var moves = new HashSet<ChessMove>();
+        ChessPiece piece = board.getPiece(myPosition);
+        return moves;
+    }
 
+    private Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
+        //function that can be called recursively to check each diagonal line
+        var moves = new HashSet<ChessMove>();
+        ChessPiece piece = board.getPiece(myPosition);
         return moves;
     }
 }
