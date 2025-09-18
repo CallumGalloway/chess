@@ -18,7 +18,6 @@ public class ChessPiece {
         this.pieceColor = pieceColor;
         this.type = type;
     }
-
     /**
      * The various different chess piece options
      */
@@ -55,10 +54,14 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
-        moves.add(piece.getMoves());
+        switch (this.type) {
+            case BISHOP:
+                moves.add(piece.getBishopMoves());
+        }
         return moves;
     }
 
-    public ChessMove getMoves();
-        //if piece is [piece type], call the helper function found in the [piece type]'s class code?
+    public ChessMove getBishopMoves() {
+        return new ChessMove(ChessPosition)
+    }
 }
