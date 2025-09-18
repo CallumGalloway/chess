@@ -54,8 +54,11 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
-        moves.add(new ChessMove(new ChessPosition(5, 1), new ChessPosition(6,2),type));
-
+        ChessPiece piece = board.getPiece(myPosition);
+        moves.add(piece.getMoves());
         return moves;
     }
+
+    public ChessMove getMoves();
+        //if piece is [piece type], call the helper function found in the [piece type]'s class code?
 }
