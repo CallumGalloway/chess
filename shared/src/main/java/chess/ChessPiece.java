@@ -1,7 +1,8 @@
 package chess;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -18,6 +19,21 @@ public class ChessPiece {
         this.pieceColor = pieceColor;
         this.type = type;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPiece that = (ChessPiece) o;
+        return pieceColor == that.pieceColor && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pieceColor, type);
+    }
+
     /**
      * The various different chess piece options
      */
@@ -53,7 +69,7 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        var moves = new HashSet<ChessMove>();
+        var moves = new ArrayList<ChessMove>();
         switch (this.type) {
             case BISHOP:
                 int[][] bishCoords = {{1,1},{-1,1},{-1,-1},{1,-1}};
@@ -79,14 +95,21 @@ public class ChessPiece {
                     moves.addAll(piece.getBishopRookQueenMoves(board, myPosition, myPosition.getRow(), myPosition.getColumn(),x,y));
                 }
                 return moves;
+            case KING:
+                int[][] kingCoords = {{1,1},{-1,1},{-1,-1},{1,-1},{1,0},{-1,0},{0,1},{0,-1}};
+                for (int[] coord : kingCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                }
+                    return moves;
             default:
                 return null;
         }
     }
 
    private Collection<ChessMove> getBishopRookQueenMoves(ChessBoard board, ChessPosition myPosition, int row, int col, int x, int y) {
-        //function that can be called recursively to check each diagonal line
-        var moves = new HashSet<ChessMove>();
+        //function that can be called recursively to check each line in a specified x/y
+        var moves = new ArrayList<ChessMove>();
         var newPosition = new ChessPosition(row,col);
 
         if (((row > 8) || (col > 8)) || ((row < 1) || (col < 1))){
@@ -116,23 +139,21 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
-        //function that can be called recursively to check each diagonal line
-        var moves = new HashSet<ChessMove>();
+        var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
         return moves;
     }
 
     private Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
-        //function that can be called recursively to check each diagonal line
-        var moves = new HashSet<ChessMove>();
+        var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
         return moves;
     }
 
     private Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
-        //function that can be called recursively to check each diagonal line
-        var moves = new HashSet<ChessMove>();
+        var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
         return moves;
     }
+
 }
