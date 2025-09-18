@@ -52,16 +52,23 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
         switch (this.type) {
             case BISHOP:
-                moves.add(piece.getBishopMoves());
+                return piece.getBishopMoves(board, myPosition);
+            default:
+                return null;
         }
-        return moves;
     }
 
-    public ChessMove getBishopMoves() {
-        return new ChessMove(ChessPosition)
+   private Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+        ChessPiece piece = board.getPiece(myPosition);
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+
+        moves.add(new ChessMove(myPosition,myPosition,null));
+
+        return moves;
     }
 }
