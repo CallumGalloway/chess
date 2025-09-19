@@ -177,6 +177,12 @@ public class ChessPiece {
         var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
 
+        ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
+        promotions.add(PieceType.QUEEN);
+        promotions.add(PieceType.BISHOP);
+        promotions.add(PieceType.ROOK);
+        promotions.add(PieceType.KNIGHT);
+
         int newRow = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? myPosition.getRow() + 1 : myPosition.getRow() - 1;
         int specRow = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? myPosition.getRow() + 2 : myPosition.getRow() - 2;
         int attackR = myPosition.getColumn() + 1;
@@ -192,12 +198,6 @@ public class ChessPiece {
             ChessPiece.PieceType promote = null;
             if (movePiece == null){
                 if (newRow == 1 || newRow == 8) {
-                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
-                    promotions.add(PieceType.QUEEN);
-                    promotions.add(PieceType.BISHOP);
-                    promotions.add(PieceType.ROOK);
-                    promotions.add(PieceType.KNIGHT);
-
                     for (PieceType promotion : promotions){
                         moves.add(new ChessMove(myPosition, newPosition, promotion));
                     }
@@ -215,12 +215,6 @@ public class ChessPiece {
             }
             if (attackRPiece != null && attackRPiece.getTeamColor() != piece.getTeamColor()){
                 if (newRow == 1 || newRow == 8) {
-                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
-                    promotions.add(PieceType.QUEEN);
-                    promotions.add(PieceType.BISHOP);
-                    promotions.add(PieceType.ROOK);
-                    promotions.add(PieceType.KNIGHT);
-
                     for (PieceType promotion : promotions){
                         moves.add(new ChessMove(myPosition, attackRPos, promotion));
                     }
@@ -231,12 +225,6 @@ public class ChessPiece {
             }
             if (attackLPiece != null && attackLPiece.getTeamColor() != piece.getTeamColor()){
                 if (newRow == 1 || newRow == 8) {
-                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
-                    promotions.add(PieceType.QUEEN);
-                    promotions.add(PieceType.BISHOP);
-                    promotions.add(PieceType.ROOK);
-                    promotions.add(PieceType.KNIGHT);
-
                     for (PieceType promotion : promotions){
                         moves.add(new ChessMove(myPosition, attackLPos, promotion));
                     }
