@@ -112,7 +112,8 @@ public class ChessPiece {
                 }
                 return moves;
             case PAWN:
-                moves.addAll(piece.getPawnMoves(board, myPosition));
+                boolean startingPos = myPosition.getRow() == 2 || myPosition.getRow() == 7;
+                moves.addAll(piece.getPawnMoves(board, myPosition, startingPos));
                 return moves;
             default:
                 return null;
@@ -140,7 +141,6 @@ public class ChessPiece {
                 return moves;
             }
             else{
-                moves.add(new ChessMove(myPosition,new ChessPosition(row,col),null));
                 return moves;
             }
         }
@@ -172,9 +172,40 @@ public class ChessPiece {
         return moves;
     }
 
-    private Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition, boolean startingPos) {
         var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
+
+        int newRow = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? myPosition.getRow() + 1 : myPosition.getRow() - 1;
+        int specRow = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? myPosition.getRow() + 2 : myPosition.getRow() - 2;
+        int attackR = myPosition.getColumn() + 1;
+        int attackL = myPosition.getColumn() - 1;
+        var newPosition = new ChessPosition(newRow, myPosition.getColumn());
+        var attackRPos = new ChessPosition(newRow, attackR);
+        var attackLPos = new ChessPosition(newRow, attackL);
+
+        if (newRow >= 1 && newRow <= 8){
+            ChessPiece movePiece = board.getPiece(newPosition);
+            ChessPiece attackRPiece = myPosition.getColumn() == 8 ? null : board.getPiece(attackRPos);
+            ChessPiece attackLPiece = myPosition.getColumn() == 1 ? null : board.getPiece(attackLPos);
+            var promote = (newRow == 8 || newRow == 1) ? PieceType.QUEEN : null;
+            if (movePiece == null){
+                moves.add(new ChessMove(myPosition, newPosition, promote));
+            }
+            if (startingPos){
+                var specPos = new ChessPosition(specRow, myPosition.getColumn());
+                ChessPiece specPiece = board.getPiece(specPos);
+                if (specPiece == null && movePiece == null)
+                    moves.add(new ChessMove(myPosition, specPos, null));
+            }
+            if (attackRPiece != null && attackRPiece.getTeamColor() != piece.getTeamColor()){
+                moves.add(new ChessMove(myPosition, attackRPos, promote));
+            }
+            if (attackLPiece != null && attackLPiece.getTeamColor() != piece.getTeamColor()){
+                moves.add(new ChessMove(myPosition, attackLPos, promote));
+            }
+        }
+
         return moves;
     }
 
