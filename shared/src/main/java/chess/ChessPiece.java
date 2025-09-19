@@ -96,10 +96,20 @@ public class ChessPiece {
                 }
                 return moves;
             case KING:
-                moves.addAll(piece.getKingMoves(board, myPosition));
+                int[][] kingCoords = {{1,1},{-1,1},{-1,-1},{1,-1},{1,0},{-1,0},{0,1},{0,-1}};
+                for (int[] coord : kingCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                    moves.addAll(piece.getKingKnightMoves(board, myPosition, x, y));
+                }
                 return moves;
             case KNIGHT:
-                moves.addAll(piece.getKnightMoves(board, myPosition));
+                int[][] knightCoords = {{1,2},{1,-2},{-1, 2},{-1,-2},{2,1},{2,-1},{-2,1},{-2,-1}};
+                for (int[] coord : knightCoords) {
+                    int x = coord[0];
+                    int y = coord[1];
+                    moves.addAll(piece.getKingKnightMoves(board, myPosition, x, y));
+                }
                 return moves;
             case PAWN:
                 moves.addAll(piece.getPawnMoves(board, myPosition));
@@ -140,35 +150,25 @@ public class ChessPiece {
         return moves;
     }
 
-    private Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> getKingKnightMoves(ChessBoard board, ChessPosition myPosition, int x, int y) {
         var moves = new ArrayList<ChessMove>();
         ChessPiece piece = board.getPiece(myPosition);
-        int[][] kingCoords = {{1,1},{-1,1},{-1,-1},{1,-1},{1,0},{-1,0},{0,1},{0,-1}};
-        for (int[] coord : kingCoords) {
-            int x = coord[0];
-            int y = coord[1];
-            int newRow = myPosition.getRow()+y;
-            int newCol = myPosition.getColumn()+x;
-            var newPosition = new ChessPosition(newRow,newCol);
-            if (newRow < 8 && newRow > 1 && newCol < 8 && newCol > 1) {
-                // if in board range, then we have to check for pieces
-                ChessPiece newPiece = board.getPiece(newPosition);
-                if (newPiece != null) {
-                    if (newPiece.getTeamColor() != piece.getTeamColor()) {
-                        moves.add(new ChessMove(myPosition, new ChessPosition(newRow, newCol), null));
-                    }
-                }
-                else {
+
+        int newRow = myPosition.getRow()+y;
+        int newCol = myPosition.getColumn()+x;
+        var newPosition = new ChessPosition(newRow,newCol);
+        if (newRow <= 8 && newRow >= 1 && newCol <= 8 && newCol >= 1) {
+            // if in board range, then we have to check for pieces
+            ChessPiece newPiece = board.getPiece(newPosition);
+            if (newPiece != null) {
+                if (newPiece.getTeamColor() != piece.getTeamColor()) {
                     moves.add(new ChessMove(myPosition, new ChessPosition(newRow, newCol), null));
                 }
             }
+            else {
+                moves.add(new ChessMove(myPosition, new ChessPosition(newRow, newCol), null));
+            }
         }
-        return moves;
-    }
-
-    private Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new ArrayList<ChessMove>();
-        ChessPiece piece = board.getPiece(myPosition);
         return moves;
     }
 
