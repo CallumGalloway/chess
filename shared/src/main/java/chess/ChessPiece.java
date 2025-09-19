@@ -37,7 +37,8 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "ChessPiece{" + pieceColor + type + '}';
+        String print = String.format("%s%s", pieceColor, type);
+        return print;
     }
 
     /**
