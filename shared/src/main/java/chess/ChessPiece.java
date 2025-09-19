@@ -148,6 +148,7 @@ public class ChessPiece {
                 return moves;
             }
             else{
+                moves.add(new ChessMove(myPosition, newPosition, null));
                 return moves;
             }
         }
