@@ -3,6 +3,7 @@ package chess;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Scanner;
 
 /**
  * Represents a single chess piece
@@ -188,21 +189,61 @@ public class ChessPiece {
             ChessPiece movePiece = board.getPiece(newPosition);
             ChessPiece attackRPiece = myPosition.getColumn() == 8 ? null : board.getPiece(attackRPos);
             ChessPiece attackLPiece = myPosition.getColumn() == 1 ? null : board.getPiece(attackLPos);
-            var promote = (newRow == 8 || newRow == 1) ? PieceType.QUEEN : null;
+            ChessPiece.PieceType promote = null;
             if (movePiece == null){
-                moves.add(new ChessMove(myPosition, newPosition, promote));
+                if (newRow == 1 || newRow == 8) {
+                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
+                    promotions.add(PieceType.QUEEN);
+                    promotions.add(PieceType.BISHOP);
+                    promotions.add(PieceType.ROOK);
+                    promotions.add(PieceType.KNIGHT);
+
+                    for (PieceType promotion : promotions){
+                        moves.add(new ChessMove(myPosition, newPosition, promotion));
+                    }
+                }
+                else{
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                }
             }
-            if (startingPos){
+            if (((startingPos) && (piece.getTeamColor() == ChessGame.TeamColor.WHITE) && (myPosition.getRow() == 2))
+            || ((startingPos) && (piece.getTeamColor() == ChessGame.TeamColor.BLACK)) && (myPosition.getRow() == 7)){
                 var specPos = new ChessPosition(specRow, myPosition.getColumn());
                 ChessPiece specPiece = board.getPiece(specPos);
                 if (specPiece == null && movePiece == null)
                     moves.add(new ChessMove(myPosition, specPos, null));
             }
             if (attackRPiece != null && attackRPiece.getTeamColor() != piece.getTeamColor()){
-                moves.add(new ChessMove(myPosition, attackRPos, promote));
+                if (newRow == 1 || newRow == 8) {
+                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
+                    promotions.add(PieceType.QUEEN);
+                    promotions.add(PieceType.BISHOP);
+                    promotions.add(PieceType.ROOK);
+                    promotions.add(PieceType.KNIGHT);
+
+                    for (PieceType promotion : promotions){
+                        moves.add(new ChessMove(myPosition, attackRPos, promotion));
+                    }
+                }
+                else{
+                    moves.add(new ChessMove(myPosition, attackRPos, null));
+                }
             }
             if (attackLPiece != null && attackLPiece.getTeamColor() != piece.getTeamColor()){
-                moves.add(new ChessMove(myPosition, attackLPos, promote));
+                if (newRow == 1 || newRow == 8) {
+                    ArrayList<ChessPiece.PieceType> promotions = new ArrayList<>();
+                    promotions.add(PieceType.QUEEN);
+                    promotions.add(PieceType.BISHOP);
+                    promotions.add(PieceType.ROOK);
+                    promotions.add(PieceType.KNIGHT);
+
+                    for (PieceType promotion : promotions){
+                        moves.add(new ChessMove(myPosition, attackLPos, promotion));
+                    }
+                }
+                else{
+                    moves.add(new ChessMove(myPosition, attackLPos, null));
+                }
             }
         }
 
