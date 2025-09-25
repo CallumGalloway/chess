@@ -1,7 +1,7 @@
 package chess;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -12,8 +12,9 @@ import java.util.*;
 public class ChessBoard {
 
     ChessPiece[][] squares = new ChessPiece[8][8];
+
     public ChessBoard() {
-        
+
     }
 
     /**
@@ -23,7 +24,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow() - 1][position.getColumn() - 1] = piece;
+        squares[position.getRow()-1][position.getColumn()-1] = piece;
     }
 
     /**
@@ -42,39 +43,51 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        for (int row = 1; row < 9; row++) {
-            for (int col = 1; col < 9; col++) {
-                switch (row) {
-                    case 1://row is 1, add white pieces in pairs except royalty depending on col
-                        switch (col) {
-                            case 1, 8 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
-                            case 2, 7 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
-                            case 3, 6 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP));
-                            case 4 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN));
-                            case 5 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING));
-                        }
-                        break;
-                    case 2://row is 2, add all white pawns
-                        addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
-                        break;
-                    case 7://row is 7, add all black pawns
-                        addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
-                        break;
-                    case 8://row is 8, add black pieces in pairs except royalty depending on col
-                        switch (col) {
-                            case 1, 8 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
-                            case 2, 7 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
-                            case 3, 6 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
-                            case 4 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN));
-                            case 5 -> addPiece(new ChessPosition(row, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING));
-                        }
-                        break;
-                    default://row is 3-6, set null
-                        addPiece(new ChessPosition(row, col), null);
-                        break;
+        for (int r = 1 ; r <= 8 ; r++){
+            for (int c = 1 ; c <= 8 ; c++){
+                ChessPiece.PieceType pieceToPut = null;
+                //pawns
+                if (r == 2) {
+                    addPiece(new ChessPosition(r,c), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+                }
+                else if (r == 7) {
+                    addPiece(new ChessPosition(r,c), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+                }
+                //empty rows
+                else if (r == 3 || r == 4 || r == 5) {
+                    addPiece(new ChessPosition(r,c), null);
+                }
+                //back rows
+                else if (r == 1 || r == 8) {
+                    switch (c) {
+                        case 1, 8 -> pieceToPut = ChessPiece.PieceType.ROOK;
+                        case 2, 7 -> pieceToPut = ChessPiece.PieceType.KNIGHT;
+                        case 3, 6 -> pieceToPut = ChessPiece.PieceType.BISHOP;
+                        case 4    -> pieceToPut = ChessPiece.PieceType.QUEEN;
+                        case 5    -> pieceToPut = ChessPiece.PieceType.KING;
+                    }
+                    if (r == 1){
+                        addPiece(new ChessPosition(r,c), new ChessPiece(ChessGame.TeamColor.WHITE, pieceToPut));
+                    }
+                    else {
+                        addPiece(new ChessPosition(r,c), new ChessPiece(ChessGame.TeamColor.BLACK, pieceToPut));
+                    }
                 }
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        String finalString = "Board:";
+        for (int row = 0; row < 8; row++){
+            for (int col = 0; col < 8; col++){
+                if (squares[row][col] != null) {
+                    finalString += squares[row][col].toString();
+                }
+            }
+        }
+        return finalString;
     }
 
     @Override
@@ -89,20 +102,5 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(squares);
-    }
-
-    @Override
-    public String toString() {
-        String print = "pieces: ";
-        for (int y = 0; y < 8; y++){
-            for (int x = 0; x < 8; x++){
-                ChessPiece piece = squares[x][y];
-                if (piece != null){
-                    print += ("[" + piece.toString() + "] ");
-                }
-            }
-        }
-        print += "[end]";
-        return print;
     }
 }
