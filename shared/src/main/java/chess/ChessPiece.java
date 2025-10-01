@@ -81,7 +81,7 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         this.board = board;
         this.myPosition = myPosition;
-        ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> moves = new ArrayList<>();
 
         ChessPiece piece = board.getPiece(myPosition);
 

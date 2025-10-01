@@ -39,6 +39,15 @@ public class ChessBoard {
     }
 
     /**
+     * Empties a square on the chess board
+     *
+     * Used to make a space vacant after a move is made
+     */
+    public void emptyPiece(ChessPosition position) {
+        squares[position.getRow()-1][position.getColumn()-1] = null;
+    }
+
+    /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
      */
