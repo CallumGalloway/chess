@@ -241,4 +241,8 @@ public class ChessPiece {
         return moves;
     }
 
+    public ChessPiece copy() {
+        return new ChessPiece(this.pieceColor, this.type);
+    }
+
 }

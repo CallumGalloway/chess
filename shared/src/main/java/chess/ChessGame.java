@@ -11,7 +11,7 @@ import java.util.Collection;
  */
 public class ChessGame {
 
-    private TeamColor teamTurn = null;
+    private TeamColor teamTurn = TeamColor.WHITE;
     public ChessBoard board = new ChessBoard();
 
     public ChessGame() {
@@ -59,10 +59,16 @@ public class ChessGame {
 
         moves.addAll(piece.pieceMoves(this.board,startPosition));
 
-        if (moves.size() != 0) {
-            return moves;
+        for (ChessMove move : moves) {
+            ChessGame testGame = copyGame();
+            testGame.forceMove(move);
+            if (testGame.isInCheck(this.teamTurn)) {
+                moves.remove(move);
+            }
+
         }
-        else return null;
+
+        return moves;
     }
 
     /**
@@ -74,7 +80,7 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = this.board.getPiece(move.getStartPosition());
 
-        if (piece == null || validMoves(move.getStartPosition()) == null) {
+        if (piece == null) {
             throw new InvalidMoveException();
         }
 
@@ -85,7 +91,7 @@ public class ChessGame {
 
         // if a move is not in the list of moves, throw exception
         ArrayList<ChessMove> valid = new ArrayList<ChessMove>();
-        valid.addAll(piece.pieceMoves(this.board, move.getStartPosition()));
+        valid.addAll(validMoves(move.getStartPosition()));
 
         if (!(valid.contains(move))) {
             throw new InvalidMoveException();
@@ -118,7 +124,7 @@ public class ChessGame {
         enemyMoves.addAll(getEnemyMoves(teamColor));
 
         for (ChessMove move : enemyMoves) {
-            if (move.getEndPosition() == findKing(teamColor)) {
+            if (move.getEndPosition().equals(findKing(teamColor))) {
                 return true;
             }
         }
@@ -149,7 +155,7 @@ public class ChessGame {
         if (isInCheck(teamColor)) {
             for (ChessMove kingMove : kingMoves) {
                 for (ChessMove enemyMove : enemyMoves) {
-                    if (kingMove.getEndPosition() == enemyMove.getEndPosition()) {
+                    if (kingMove.getEndPosition().equals(enemyMove.getEndPosition())) {
                         inCheck += 1;
                         if (inCheck == possible) return true;
                         }
@@ -234,4 +240,17 @@ public class ChessGame {
         return enemyMoves;
     }
 
+    public ChessGame copyGame() {
+        ChessGame copy = new ChessGame();
+        copy.teamTurn = this.teamTurn;
+        copy.board = this.board.copy();
+        return copy;
+    }
+
+    private void forceMove(ChessMove move) {
+        ChessPiece piece = this.board.getPiece(move.getStartPosition());
+
+        board.emptyPiece(move.getStartPosition());
+        board.addPiece(move.getEndPosition(), piece);
+    }
 }

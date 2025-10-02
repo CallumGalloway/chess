@@ -86,6 +86,23 @@ public class ChessBoard {
         }
     }
 
+    public ChessBoard copy() {
+        ChessBoard copy = new ChessBoard();
+
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col ++) {
+                ChessPiece piece = this.squares[row][col];
+                if (piece != null) {
+                    ChessPiece copiedPiece = piece.copy();
+                    copy.squares[row][col] = copiedPiece;
+                }
+                else copy.squares[row][col] = null;
+            }
+        }
+
+        return copy;
+    }
+
     @Override
     public String toString() {
         String finalString = "Board:";
