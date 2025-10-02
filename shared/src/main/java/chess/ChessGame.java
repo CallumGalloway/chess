@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -32,6 +33,28 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         this.teamTurn = team;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "teamTurn=" + teamTurn +
+                ", board=" + board +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamTurn, board);
     }
 
     /**
@@ -140,30 +163,10 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        // find king of given color
-        // for all it's valid moves, run isInCheck algorithm on square
-        // if any moves are not in check, return false. else, true
-        ChessBoard board = this.board;
-        ChessPosition kingPos = findKing(teamColor);
-        ChessPiece king = board.getPiece(kingPos);
-        ArrayList<ChessMove> kingMoves = new ArrayList<>();
-        ArrayList<ChessMove> enemyMoves = new ArrayList<>();
-        kingMoves.addAll(king.pieceMoves(board, kingPos));
-        enemyMoves.addAll(getEnemyMoves(teamColor));
-        int possible = kingMoves.size();
-        int inCheck = 0;
-
-        if (isInCheck(teamColor)) {
-            for (ChessMove kingMove : kingMoves) {
-                for (ChessMove enemyMove : enemyMoves) {
-                    if (kingMove.getEndPosition().equals(enemyMove.getEndPosition())) {
-                        inCheck += 1;
-                        if (inCheck == possible) return true;
-                        }
-                    }
-                }
-            }
-        return false;
+        // must start in check
+        if (!(isInCheck(teamColor))) return false;
+        if (getTeamMoves(teamColor).size() == 0) return true;
+        else return false;
     }
 
 
@@ -175,7 +178,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // must not be in check
+        if (isInCheck(teamColor)) return false;
+        if (getTeamMoves(teamColor).size() == 0) return true;
+        else return false;
     }
 
     /**
@@ -229,16 +235,35 @@ public class ChessGame {
 
         for (int row = 0; row < 8; row++){
             for (int col = 0; col < 8; col++){
-                if (squares[row][col] != null) {
-                    piece = squares[row][col];
+                piece = squares[row][col];
+                if (piece != null) {
                     if (piece.getTeamColor() != teamColor) {
-                        enemyMoves.addAll(piece.pieceMoves(this.board, new ChessPosition(row+1,col+1)));
+                        enemyMoves.addAll(piece.pieceMoves(this.board, new ChessPosition(row+1, col+1)));
                     }
                 }
             }
         }
 
         return enemyMoves;
+    }
+
+    private Collection<ChessMove> getTeamMoves(TeamColor teamColor) {
+        ChessPiece[][] squares = this.board.squares;
+        ChessPiece piece;
+        ArrayList<ChessMove> teamMoves = new ArrayList<>();
+
+        for (int row = 0; row < 8; row++){
+            for (int col = 0; col < 8; col++){
+                piece = squares[row][col];
+                if (piece != null) {
+                    if (piece.getTeamColor() == teamColor) {
+                        teamMoves.addAll(validMoves(new ChessPosition(row+1, col+1)));
+                    }
+                }
+            }
+        }
+
+        return teamMoves;
     }
 
     public ChessGame copyGame() {
