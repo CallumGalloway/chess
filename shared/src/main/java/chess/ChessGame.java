@@ -51,6 +51,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> validMoves = new ArrayList<ChessMove>();
         ChessPiece piece = this.board.getPiece(startPosition);
 
         if (piece == null) {
@@ -62,13 +63,13 @@ public class ChessGame {
         for (ChessMove move : moves) {
             ChessGame testGame = copyGame();
             testGame.forceMove(move);
-            if (testGame.isInCheck(this.teamTurn)) {
-                moves.remove(move);
+            if (!testGame.isInCheck(this.teamTurn)) {
+                validMoves.add(move);
             }
 
         }
 
-        return moves;
+        return validMoves;
     }
 
     /**
