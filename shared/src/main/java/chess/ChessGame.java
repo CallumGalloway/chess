@@ -16,7 +16,7 @@ public class ChessGame {
     public ChessBoard board = new ChessBoard();
 
     public ChessGame() {
-
+        board.resetBoard();
     }
 
     /**
@@ -86,7 +86,7 @@ public class ChessGame {
         for (ChessMove move : moves) {
             ChessGame testGame = copyGame();
             testGame.forceMove(move);
-            if (!testGame.isInCheck(this.teamTurn)) {
+            if (!testGame.isInCheck(piece.getTeamColor())) {
                 validMoves.add(move);
             }
 
