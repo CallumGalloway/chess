@@ -18,6 +18,8 @@ public class UserService {
         return new AuthData(user.username(), generateAuthToken());
     }
 
+    public void clear(){}
+
     private String generateAuthToken() {
         return "placeholder";
     }
