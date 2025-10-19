@@ -2,7 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
-import datamodel.UserData;
+import datamodel.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.*;
@@ -22,6 +22,7 @@ public class Server {
         javalin.post("/user", ctx -> register(ctx));
         javalin.delete("/db", ctx -> clear(ctx));
         javalin.post("/session", ctx -> login(ctx));
+        javalin.delete("/session", ctx -> logout(ctx));
     }
 
     private void register(Context ctx) {
@@ -71,6 +72,28 @@ public class Server {
 
             ctx.status(200);
             ctx.result(String.format("{\"username\": \"%s\", \"authToken\": \"%s\"}",authData.username(),authData.authToken()));
+
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            if (msg.contains("unauthorized")) {
+                ctx.status(401);
+                ctx.result(msg);
+            }
+            else {
+                ctx.status(400);
+                ctx.result(msg);
+            }
+        }
+    }
+
+    private void logout(Context ctx) {
+        try {
+            var auth = ctx.header("authorization");
+
+            userService.logout(auth);
+
+            ctx.status(200);
+            ctx.result("{}");
 
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());

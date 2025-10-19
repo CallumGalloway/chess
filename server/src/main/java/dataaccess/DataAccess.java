@@ -7,5 +7,6 @@ public interface DataAccess {
     void createUser(UserData user);
     UserData getUser(String username);
     void addAuth(AuthData auth);
-    AuthData getAuth(String username);
+    String getAuthUser(String auth);
+    void delAuth(String auth);
 }
