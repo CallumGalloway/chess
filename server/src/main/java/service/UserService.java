@@ -81,6 +81,23 @@ public class UserService {
         }
     }
 
+    public void joinGame(Integer gameID, String color, String auth) throws Exception {
+        if (dataAccess.getAuthUser(auth) != null) {
+            if (gameID != null && color != null && (color.equals("WHITE") || color.equals("BLACK"))) {
+                try {
+                    dataAccess.joinGame(gameID, color, auth);
+                } catch (Exception ex){
+                    throw new Exception(ex);
+                }
+            } else {
+                throw new Exception("Bad Request");
+            }
+        }
+        else {
+            throw new Exception("unauthorized");
+        }
+    }
+
     public void clear() {
         dataAccess.clear();
     }

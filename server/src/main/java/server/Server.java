@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
 import datamodel.*;
@@ -27,7 +28,7 @@ public class Server {
         javalin.delete("/session", ctx -> logout(ctx));
         javalin.get("/game",ctx -> listGames(ctx));
         javalin.post("/game",ctx-> createGame(ctx));
-        // javalin.put("/game",ctx -> joinGame(ctx));
+        javalin.put("/game",ctx -> joinGame(ctx));
     }
 
     private void register(Context ctx) {
@@ -123,7 +124,7 @@ public class Server {
             String send = serializer.toJson(list);
 
             ctx.status(200);
-            ctx.result();
+            ctx.result(send);
 
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
@@ -145,10 +146,6 @@ public class Server {
             String reqJson = ctx.body();
             var gameName = serializer.fromJson(reqJson, GameName.class);
             String name = gameName.gameName();
-            if (name == null || name == "") {
-                ctx.status(400);
-                ctx.result("Bad Request");
-            }
 
             var gameID = userService.addGame(name, auth);
             // var formatted = String.format("{\"gameID\": %d}", gameID);
@@ -165,6 +162,35 @@ public class Server {
                 ctx.result(msg);
             }
             else {
+                ctx.status(400);
+                ctx.result(msg);
+            }
+        }
+    }
+
+    private void joinGame(Context ctx) {
+        try {
+            var auth = ctx.header("authorization");
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var gameInfo = serializer.fromJson(reqJson, JoinData.class);
+            Integer gameID = gameInfo.gameID();
+            String color = gameInfo.playerColor();
+
+            userService.joinGame(gameID, color, auth);
+
+            ctx.status(200);
+            ctx.result("{}");
+
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            if (msg.contains("unauthorized")) {
+                ctx.status(401);
+                ctx.result(msg);
+            } else if (msg.contains("already taken")) {
+                ctx.status(403);
+                ctx.result(msg);
+            } else {
                 ctx.status(400);
                 ctx.result(msg);
             }

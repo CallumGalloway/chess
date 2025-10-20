@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.JsonObject;
 import datamodel.*;
 
@@ -16,6 +17,7 @@ public class MemoryDataAccess implements DataAccess {
     public void clear() {
         users.clear();
         authentifier.clear();
+        games.clear();
     }
 
     @Override
@@ -47,5 +49,21 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public void addGame(GameData game) {
         games.put(game.gameID(),game);
+    }
+
+    @Override
+    public void joinGame(Integer gameID, String color, String auth) throws Exception {
+        var game = games.get(gameID);
+        String user = getAuthUser(auth);
+        if (color.equals("WHITE") && game.whiteUsername() == null){
+            GameData updated = new GameData(gameID, user, game.blackUsername(), game.gameName(), game.game());
+            games.put(gameID, updated);
+        } else if (color.equals("BLACK") && game.blackUsername() == null) {
+            GameData updated = new GameData(gameID, game.whiteUsername(), user, game.gameName(), game.game());
+            games.put(gameID, updated);
+        } else {
+            throw new Exception("already taken");
+        }
+
     }
 }

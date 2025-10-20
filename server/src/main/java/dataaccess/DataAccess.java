@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.JsonObject;
 import datamodel.*;
 
@@ -14,4 +15,5 @@ public interface DataAccess {
     void delAuth(String auth);
     HashMap listGames();
     void addGame(GameData game);
+    void joinGame(Integer gameID, String color, String auth) throws Exception;
 }
