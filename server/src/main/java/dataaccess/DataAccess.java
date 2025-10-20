@@ -1,6 +1,9 @@
 package dataaccess;
 
+import com.google.gson.JsonObject;
 import datamodel.*;
+
+import java.util.HashMap;
 
 public interface DataAccess {
     void clear();
@@ -9,4 +12,6 @@ public interface DataAccess {
     void addAuth(AuthData auth);
     String getAuthUser(String auth);
     void delAuth(String auth);
+    HashMap listGames();
+    void addGame(GameData game);
 }

@@ -7,6 +7,8 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import service.*;
 
+import java.util.HashMap;
+
 public class Server {
 
     private final Javalin javalin;
@@ -23,6 +25,9 @@ public class Server {
         javalin.delete("/db", ctx -> clear(ctx));
         javalin.post("/session", ctx -> login(ctx));
         javalin.delete("/session", ctx -> logout(ctx));
+        javalin.get("/game",ctx -> listGames(ctx));
+        javalin.post("/game",ctx-> createGame(ctx));
+        // javalin.put("/game",ctx -> joinGame(ctx));
     }
 
     private void register(Context ctx) {
@@ -95,6 +100,64 @@ public class Server {
             ctx.status(200);
             ctx.result("{}");
 
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            if (msg.contains("unauthorized")) {
+                ctx.status(401);
+                ctx.result(msg);
+            }
+            else {
+                ctx.status(400);
+                ctx.result(msg);
+            }
+        }
+    }
+
+    private void listGames(Context ctx) {
+        try {
+            var auth = ctx.header("authorization");
+
+            HashMap list = userService.listGames(auth);
+
+            var serializer = new Gson();
+            String send = serializer.toJson(list);
+
+            ctx.status(200);
+            ctx.result();
+
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            if (msg.contains("unauthorized")) {
+                ctx.status(401);
+                ctx.result(msg);
+            }
+            else {
+                ctx.status(400);
+                ctx.result(msg);
+            }
+        }
+    }
+
+    private void createGame(Context ctx) {
+        try {
+            var auth = ctx.header("authorization");
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var gameName = serializer.fromJson(reqJson, GameName.class);
+            String name = gameName.gameName();
+            if (name == null || name == "") {
+                ctx.status(400);
+                ctx.result("Bad Request");
+            }
+
+            var gameID = userService.addGame(name, auth);
+            // var formatted = String.format("{\"gameID\": %d}", gameID);
+            var formatted = new HashMap<String, Integer>();
+            formatted.put("gameID",gameID);
+            var retVar = serializer.toJson(formatted);
+
+            ctx.status(200);
+            ctx.result(retVar);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
