@@ -158,6 +158,24 @@ class UserServiceTest {
     }
 
     @Test
+    void joinGameNegative() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var authData = userService.register(new UserData("new", "password", "new@new.com"));
+        Integer gameID = userService.addGame("gameToJoin", authData.authToken());
+// bad auth
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.joinGame(gameID, "WHITE", "fakeAuthToken");
+        });
+        assertEquals("unauthorized", exception.getMessage());
+// bad color
+        Exception exception2 = assertThrows(Exception.class, () -> {
+            userService.joinGame(gameID, "ORANGE", authData.authToken());
+        });
+        assertEquals("Bad Request", exception2.getMessage());
+    }
+
+    @Test
     void clearPositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
