@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
 
     @Test
-    void register() throws Exception {
+    void registerPositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
         var userService = new UserService(db);
@@ -21,6 +21,66 @@ class UserServiceTest {
     }
 
     @Test
-    void clear() {
+    void registerNegative() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new", null, "new@new.com"); // Null password
+        var userService = new UserService(db);
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.register(user);
+        });
+        assertEquals("bad request", exception.getMessage());
+
+        var userGood = new UserData("new", "notnull", "new@new.com");
+        userService.register(userGood);
+
+        var userDup = new UserData("new", "password", "second@new.com");
+        Exception exception2 = assertThrows(Exception.class, () -> {
+            userService.register(userDup);
+        });
+        assertEquals("username already taken", exception2.getMessage());
+    }
+
+    @Test
+    void loginPositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new","password","new@new.com");
+        var userService = new UserService(db);
+        userService.register(user);
+        var loginUser = new UserData("new", "password", null);
+        var authData = userService.login(loginUser);
+        assertNotNull(authData);
+        assertEquals(user.username(), authData.username());
+        assertNotNull(authData.authToken());
+    }
+
+    @Test
+    void loginNegative() {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var loginUser = new UserData("", "password", null);
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.login(loginUser);
+        });
+        assertEquals("bad request", exception.getMessage());
+
+        var loginUser2 = new UserData("nonexistent", "password", null);
+
+        Exception exception2 = assertThrows(Exception.class, () -> {
+            userService.login(loginUser2);
+        });
+        assertEquals("unauthorized", exception2.getMessage());
+    }
+
+    @Test
+    void clearPositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new","password","new@new.com");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        userService.clear();
+        var check = db.getUser(user.username());
+        assertNull(check);
     }
 }
