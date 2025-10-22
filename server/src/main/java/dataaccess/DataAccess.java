@@ -16,4 +16,5 @@ public interface DataAccess {
     HashMap listGames();
     void addGame(GameData game);
     void joinGame(Integer gameID, String color, String auth) throws Exception;
+    GameData getGameFromID(Integer gameID);
 }

@@ -66,4 +66,8 @@ public class MemoryDataAccess implements DataAccess {
         }
 
     }
+
+    public GameData getGameFromID(Integer gameID) {
+        return games.get(gameID);
+    }
 }
