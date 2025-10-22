@@ -121,6 +121,43 @@ class UserServiceTest {
     }
 
     @Test
+    void addGamePositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var authData = userService.register(new UserData("new", "password", "new@new.com"));
+        Integer games = userService.addGame("newGame", authData.authToken());
+        assertNotNull(games);
+    }
+
+    @Test
+    void addGameNegative() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var authData = userService.register(new UserData("player", "pass", "p@p.com"));
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.addGame(null, authData.authToken()); // Null game name
+        });
+        assertEquals("Bad Request", exception.getMessage());
+
+        Exception exception2 = assertThrows(Exception.class, () -> {
+            userService.addGame("newGame", "fakeAuthToken");
+        });
+        assertEquals("unauthorized", exception2.getMessage());
+    }
+
+    @Test
+    void joinGamePositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var authData = userService.register(new UserData("new", "password", "new@new.com"));
+        Integer gameID = userService.addGame("gameToJoin", authData.authToken());
+        userService.joinGame(gameID, "WHITE", authData.authToken());
+        GameData game = db.getGameFromID(gameID);
+        assertEquals("new", game.whiteUsername());
+    }
+
+    @Test
     void clearPositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
