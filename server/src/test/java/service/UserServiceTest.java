@@ -2,8 +2,10 @@ package service;
 
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
-import datamodel.UserData;
+import datamodel.*;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -71,6 +73,51 @@ class UserServiceTest {
             userService.login(loginUser2);
         });
         assertEquals("unauthorized", exception2.getMessage());
+    }
+
+    @Test
+    void logoutPositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new","password","new@new.com");
+        var userService = new UserService(db);
+        var authData = userService.register(user);
+        assertNotNull(db.getAuthUser(authData.authToken()));
+        userService.logout(authData.authToken());
+        assertNull(db.getAuthUser(authData.authToken()));
+    }
+
+    @Test
+    void logoutNegative() {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.logout("fakeAuthToken");
+        });
+        assertEquals("unauthorized", exception.getMessage());
+    }
+
+    @Test
+    void listGamesPositive() throws Exception {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+        var authData = userService.register(new UserData("new", "password", "new@new.com"));
+        db.addGame(new GameData(123, null, null, "testGame", null));
+        HashMap games = userService.listGames(authData.authToken());
+        assertNotNull(games);
+        assertNotNull(games.get("games"));
+        assertEquals(1, ((java.util.Collection)games.get("games")).size());
+    }
+
+    @Test
+    void listGamesNegativeUnauthorized() {
+        DataAccess db = new MemoryDataAccess();
+        var userService = new UserService(db);
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.listGames("fakeAuthToken");
+        });
+        assertEquals("unauthorized", exception.getMessage());
     }
 
     @Test
