@@ -42,53 +42,53 @@ class MemoryDataAccessTest {
         assertNull(results);
     }
 
-    @Test
-    void addAuth() {
-
-    }
-
-    @Test
-    void addAuthFail() {
-
-    }
-
-    @Test
-    void getAuthUser() {
-
-    }
-
-    @Test
-    void getAuthUserFail() {
-
-    }
-
-    @Test
-    void delAuth() {
-
-    }
-
-    @Test
-    void listGames() {
-
-    }
-
-    @Test
-    void listGamesEmpty() {
-
-    }
-
-    @Test
-    void addGame() {
-
-    }
-
-    @Test
-    void joinGame() {
-
-    }
-
-    @Test
-    void joinGameFail() {
-
-    }
+//    @Test
+//    void addAuth() {
+//
+//    }
+//
+//    @Test
+//    void addAuthFail() {
+//
+//    }
+//
+//    @Test
+//    void getAuthUser() {
+//
+//    }
+//
+//    @Test
+//    void getAuthUserFail() {
+//
+//    }
+//
+//    @Test
+//    void delAuth() {
+//
+//    }
+//
+//    @Test
+//    void listGames() {
+//
+//    }
+//
+//    @Test
+//    void listGamesEmpty() {
+//
+//    }
+//
+//    @Test
+//    void addGame() {
+//
+//    }
+//
+//    @Test
+//    void joinGame() {
+//
+//    }
+//
+//    @Test
+//    void joinGameFail() {
+//
+//    }
 }
