@@ -25,5 +25,20 @@ class MemoryDataAccessTest {
 
     @Test
     void getUser() {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new","password","new@new.com");
+        db.createUser(user);
+        UserData results = db.getUser("new");
+        assertNotNull(results);
+        assertEquals(user, results);
+    }
+
+    @Test
+    void getUserFail() {
+        DataAccess db = new MemoryDataAccess();
+        var user = new UserData("new","password","new@new.com");
+        db.createUser(user);
+        UserData results = db.getUser("notAUser");
+        assertNull(results);
     }
 }
