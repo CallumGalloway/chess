@@ -2,7 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import datamodel.*;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -16,7 +16,14 @@ public class Server {
     private UserService userService;
 
     public Server() {
-        var dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess;
+        try {
+            dataAccess = new SQLDataAccess();
+            System.out.println("SQL connection successful");
+        } catch (Exception ex) {
+            dataAccess = new MemoryDataAccess();
+            System.out.println("SQL connection failed, using memory");
+        }
         userService = new UserService(dataAccess);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
