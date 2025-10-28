@@ -14,45 +14,45 @@ public class MemoryDataAccess implements DataAccess {
     private final HashMap<String, String> authentifier = new HashMap<>();
     private final HashMap<Integer, GameData> games = new HashMap();
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
         users.clear();
         authentifier.clear();
         games.clear();
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user) throws DataAccessException {
         users.put(user.username(), user);
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         return users.get(username);
     }
 
     @Override
-    public void addAuth(AuthData auth) { authentifier.put(auth.authToken(), auth.username()); }
+    public void addAuth(AuthData auth) throws DataAccessException { authentifier.put(auth.authToken(), auth.username()); }
 
     @Override
-    public String getAuthUser(String auth) { return authentifier.get(auth); }
+    public String getAuthUser(String auth) throws DataAccessException { return authentifier.get(auth); }
 
     @Override
-    public void delAuth(String auth) { authentifier.remove(auth); }
+    public void delAuth(String auth) throws DataAccessException { authentifier.remove(auth); }
 
     @Override
-    public HashMap<String, Collection> listGames() {
+    public HashMap<String, Collection> listGames() throws DataAccessException {
         HashMap<String, Collection> list = new HashMap<>();
         list.put("games",games.values());
         return list;
     }
 
     @Override
-    public void addGame(GameData game) {
+    public void addGame(GameData game) throws DataAccessException {
         games.put(game.gameID(),game);
     }
 
     @Override
-    public void joinGame(Integer gameID, String color, String auth) throws Exception {
+    public void joinGame(Integer gameID, String color, String auth) throws DataAccessException {
         var game = games.get(gameID);
         String user = getAuthUser(auth);
         if (color.equals("WHITE") && game.whiteUsername() == null){
@@ -62,12 +62,12 @@ public class MemoryDataAccess implements DataAccess {
             GameData updated = new GameData(gameID, game.whiteUsername(), user, game.gameName(), game.game());
             games.put(gameID, updated);
         } else {
-            throw new Exception("already taken");
+            throw new DataAccessException("already taken");
         }
 
     }
 
-    public GameData getGameFromID(Integer gameID) {
+    public GameData getGameFromID(Integer gameID) throws DataAccessException {
         return games.get(gameID);
     }
 }

@@ -7,14 +7,14 @@ import datamodel.*;
 import java.util.HashMap;
 
 public interface DataAccess {
-    void clear();
-    void createUser(UserData user);
-    UserData getUser(String username);
-    void addAuth(AuthData auth);
-    String getAuthUser(String auth);
-    void delAuth(String auth);
-    HashMap listGames();
-    void addGame(GameData game);
-    void joinGame(Integer gameID, String color, String auth) throws Exception;
-    GameData getGameFromID(Integer gameID);
+    void clear() throws DataAccessException;
+    void createUser(UserData user) throws DataAccessException;
+    UserData getUser(String username) throws DataAccessException;
+    void addAuth(AuthData auth) throws DataAccessException;
+    String getAuthUser(String auth) throws DataAccessException;
+    void delAuth(String auth) throws DataAccessException;
+    HashMap listGames() throws DataAccessException;
+    void addGame(GameData game) throws DataAccessException;
+    void joinGame(Integer gameID, String color, String auth) throws DataAccessException;
+    GameData getGameFromID(Integer gameID) throws DataAccessException;
 }

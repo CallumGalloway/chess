@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemoryDataAccessTest {
 
     @Test
-    void clear() {
+    void clear() throws Exception {
         DataAccess db = new MemoryDataAccess();
         db.createUser(new UserData("new","password","new@new.com"));
         db.clear();
@@ -16,7 +16,7 @@ class MemoryDataAccessTest {
     }
 
     @Test
-    void createUser() {
+    void createUser() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
         db.createUser(user);
@@ -24,7 +24,7 @@ class MemoryDataAccessTest {
     }
 
     @Test
-    void getUser() {
+    void getUser() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
         db.createUser(user);
@@ -34,7 +34,7 @@ class MemoryDataAccessTest {
     }
 
     @Test
-    void getUserFail() {
+    void getUserFail() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("new","password","new@new.com");
         db.createUser(user);

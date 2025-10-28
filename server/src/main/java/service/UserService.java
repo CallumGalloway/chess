@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import datamodel.*;
 
 import java.util.HashMap;
@@ -98,8 +99,12 @@ public class UserService {
         }
     }
 
-    public void clear() {
-        dataAccess.clear();
+    public void clear() throws Exception {
+        try {
+            dataAccess.clear();
+        } catch (DataAccessException ex){
+            throw new Exception(String.format("Data Access Exception: %s",ex.getMessage()));
+        }
     }
 
     private String generateAuthToken() {

@@ -15,69 +15,67 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
+        executeUpdate("DROP DATABASE IF EXISTS chess");
+    }
+
+    @Override
+    public void createUser(UserData user) throws DataAccessException {
 
     }
 
     @Override
-    public void createUser(UserData user) {
-
-    }
-
-    @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         return null;
     }
 
     @Override
-    public void addAuth(AuthData auth) {
+    public void addAuth(AuthData auth) throws DataAccessException {
 
     }
 
     @Override
-    public String getAuthUser(String auth) {
+    public String getAuthUser(String auth) throws DataAccessException {
         return "";
     }
 
     @Override
-    public void delAuth(String auth) {
+    public void delAuth(String auth) throws DataAccessException {
 
     }
 
     @Override
-    public HashMap listGames() {
+    public HashMap listGames() throws DataAccessException {
         return null;
     }
 
     @Override
-    public void addGame(GameData game) {
+    public void addGame(GameData game) throws DataAccessException {
 
     }
 
     @Override
-    public void joinGame(Integer gameID, String color, String auth) throws Exception {
+    public void joinGame(Integer gameID, String color, String auth) throws DataAccessException {
 
     }
 
     @Override
-    public GameData getGameFromID(Integer gameID) {
+    public GameData getGameFromID(Integer gameID) throws DataAccessException {
         return null;
     }
 
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS  users (
-              `id` int NOT NULL AUTO_INCREMENT,
+            CREATE TABLE IF NOT EXISTS users (
               `username` varchar(256) NOT NULL,
               `json` TEXT DEFAULT NULL,
-              PRIMARY KEY (`username`),
+              PRIMARY KEY (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
             ,
             """
-            CREATE TABLE IF NOT EXISTS  authentifier (
-              `id` int NOT NULL AUTO_INCREMENT,
-              `token` varchar(256) NOT NULL
+            CREATE TABLE IF NOT EXISTS authentifier (
+              `token` varchar(256) NOT NULL,
               `username` varchar(256) NOT NULL,
               PRIMARY KEY (`token`),
               INDEX(token),
@@ -86,12 +84,12 @@ public class SQLDataAccess implements DataAccess {
             """
             ,
             """
-            CREATE TABLE IF NOT EXISTS  games (
+            CREATE TABLE IF NOT EXISTS games (
               `id` int NOT NULL AUTO_INCREMENT,
               `name` varchar(256) NOT NULL,
               `json` TEXT DEFAULT NULL,
               PRIMARY KEY (`id`),
-              INDEX(name),
+              INDEX(name)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };
