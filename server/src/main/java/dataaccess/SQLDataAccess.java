@@ -1,5 +1,6 @@
 package dataaccess;
 
+import com.google.gson.Gson;
 import datamodel.*;
 
 import java.sql.*;
@@ -17,26 +18,55 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void clear() throws DataAccessException {
         executeUpdate("DROP DATABASE IF EXISTS chess");
+        configureDatabase();
     }
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
-
+        var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
+        int id = executeUpdate(statement, user.username(), user.password(), user);
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, json FROM users WHERE username=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readUser(rs);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 
     @Override
     public void addAuth(AuthData auth) throws DataAccessException {
-
+        var statement = "INSERT INTO authentifier (token, username) VALUES (?, ?)";
+        int id = executeUpdate(statement, auth.authToken(), auth.username());
     }
 
     @Override
     public String getAuthUser(String auth) throws DataAccessException {
-        return "";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT token, username FROM authentifier WHERE username=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, auth);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readAuth(rs).username();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
+        return null;
     }
 
     @Override
@@ -68,6 +98,7 @@ public class SQLDataAccess implements DataAccess {
             """
             CREATE TABLE IF NOT EXISTS users (
               `username` varchar(256) NOT NULL,
+              `password` varchar(256) NOT NULL,
               `json` TEXT DEFAULT NULL,
               PRIMARY KEY (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -130,5 +161,19 @@ public class SQLDataAccess implements DataAccess {
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
+    }
+
+    private UserData readUser(ResultSet rs) throws SQLException {
+        var username = rs.getString("username");
+        var json = rs.getString("json");
+        UserData user = new Gson().fromJson(json, UserData.class);
+        return user;
+    }
+
+    private AuthData readAuth(ResultSet rs) throws SQLException {
+        var token = rs.getString("token");
+        var username = rs.getString("username");
+        AuthData auth = new AuthData(username,token);
+        return auth;
     }
 }

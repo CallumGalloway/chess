@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import datamodel.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,7 +23,8 @@ public class UserService {
         if (dataAccess.getUser(user.username()) != null) {
             throw new Exception("username already taken");
         }
-        dataAccess.createUser(user);
+        UserData encrypted = new UserData(user.username(),encryptPass(user.password()), user.email());
+        dataAccess.createUser(encrypted);
         AuthData auth = new AuthData(user.username(), generateAuthToken());
         dataAccess.addAuth(auth);
         return auth;
@@ -113,5 +115,10 @@ public class UserService {
 
     private Integer generateGameID() {
         return Math.abs(UUID.randomUUID().toString().hashCode());
+    }
+
+    private String encryptPass(String pass) {
+        String salty = BCrypt.gensalt();
+        return BCrypt.hashpw(pass,salty);
     }
 }

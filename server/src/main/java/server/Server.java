@@ -21,8 +21,9 @@ public class Server {
             dataAccess = new SQLDataAccess();
             System.out.println("SQL connection successful");
         } catch (Exception ex) {
-            dataAccess = new MemoryDataAccess();
-            System.out.println("SQL connection failed, using memory");
+//            dataAccess = new MemoryDataAccess();
+//            System.out.println("SQL connection failed, using memory");
+            throw new RuntimeException(String.format("SQL connection failed, %s",ex));
         }
         userService = new UserService(dataAccess);
 
