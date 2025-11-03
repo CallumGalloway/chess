@@ -19,8 +19,16 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void clear() throws DataAccessException {
-        executeUpdate("DROP DATABASE IF EXISTS chess");
-        configureDatabase();
+        var tables = new String[]{"users", "authentifier", "games"};
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (Statement s = conn.createStatement()) {
+                for (String table : tables) {
+                    s.executeUpdate("TRUNCATE TABLE " + table);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Failed to clear database: %s", e.getMessage()));
+        }
     }
 
     @Override
