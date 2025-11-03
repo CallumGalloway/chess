@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import datamodel.*;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -24,7 +26,9 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void createUser(UserData user) throws DataAccessException {
         var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
-        int id = executeUpdate(statement, user.username(), user.password(), user);
+        var serializer = new Gson();
+        String serialized = serializer.toJson(user);
+        executeUpdate(statement, user.username(), user.password(), serialized);
     }
 
     @Override
@@ -39,8 +43,8 @@ public class SQLDataAccess implements DataAccess {
                     }
                 }
             }
-        } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        } catch (Exception ex) {
+            throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
         }
         return null;
     }
@@ -48,7 +52,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void addAuth(AuthData auth) throws DataAccessException {
         var statement = "INSERT INTO authentifier (token, username) VALUES (?, ?)";
-        int id = executeUpdate(statement, auth.authToken(), auth.username());
+        executeUpdate(statement, auth.authToken(), auth.username());
     }
 
     @Override
@@ -63,8 +67,8 @@ public class SQLDataAccess implements DataAccess {
                     }
                 }
             }
-        } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        } catch (Exception ex) {
+            throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
         }
         return null;
     }
@@ -76,17 +80,65 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public HashMap listGames() throws DataAccessException {
-        return null;
+        var gamesList = new ArrayList<GameData>();
+        var statement = "SELECT json FROM games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        GameData game = readGame(rs);
+                        gamesList.add(game);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
+        }
+        HashMap<String, Collection> list = new HashMap<>();
+        list.put("games", gamesList);
+        return list;
     }
 
     @Override
     public void addGame(GameData game) throws DataAccessException {
-
+        var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
+        var serializer = new Gson();
+        String serialized = serializer.toJson(game);
+        executeUpdate(statement, game.gameID(), game.gameName(), serialized);
     }
 
     @Override
     public void joinGame(Integer gameID, String color, String auth) throws DataAccessException {
+        GameData game = null;
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM games WHERE id=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, auth);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        game = readGame(rs);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
+        }
+        String user = getAuthUser(auth);
 
+        String statement = "UPDATE games SET json = ? WHERE id = ?";
+        if (color.equals("WHITE") && game.whiteUsername() == null){
+            GameData updated = new GameData(gameID, user, game.blackUsername(), game.gameName(), game.game());
+            var serializer = new Gson();
+            String serialized = serializer.toJson(updated);
+            executeUpdate(statement, serialized, gameID);
+        } else if (color.equals("BLACK") && game.blackUsername() == null) {
+            GameData updated = new GameData(gameID, game.whiteUsername(), user, game.gameName(), game.game());
+            var serializer = new Gson();
+            String serialized = serializer.toJson(updated);
+            executeUpdate(statement, serialized, gameID);
+        } else {
+            throw new DataAccessException("already taken");
+        }
     }
 
     @Override
@@ -116,7 +168,7 @@ public class SQLDataAccess implements DataAccess {
             ,
             """
             CREATE TABLE IF NOT EXISTS games (
-              `id` int NOT NULL AUTO_INCREMENT,
+              `id` int NOT NULL,
               `name` varchar(256) NOT NULL,
               `json` TEXT DEFAULT NULL,
               PRIMARY KEY (`id`),
@@ -138,7 +190,7 @@ public class SQLDataAccess implements DataAccess {
         }
     }
 
-    private int executeUpdate(String statement, Object... params) throws DataAccessException {
+    private void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
@@ -150,13 +202,6 @@ public class SQLDataAccess implements DataAccess {
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
                 ps.executeUpdate();
-
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-
-                return 0;
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -175,5 +220,11 @@ public class SQLDataAccess implements DataAccess {
         var username = rs.getString("username");
         AuthData auth = new AuthData(username,token);
         return auth;
+    }
+
+    private GameData readGame(ResultSet rs) throws SQLException {
+        var json = rs.getString("json");
+        GameData game = new Gson().fromJson(json, GameData.class);
+        return game;
     }
 }
