@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SQLDataAccessTest {
@@ -105,29 +108,86 @@ class SQLDataAccessTest {
         db.delAuth("token123");
         assertNull(db.getAuthUser("token123"));
     }
-//
-//    @Test
-//    void listGames() {
-//
-//    }
-//
-//    @Test
-//    void listGamesEmpty() {
-//
-//    }
-//
-//    @Test
-//    void addGame() {
-//
-//    }
-//
-//    @Test
-//    void joinGame() {
-//
-//    }
-//
-//    @Test
-//    void joinGameFail() {
-//
-//    }
+
+    @Test
+    void listGames() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        var game1 = new GameData(1234, null, null, "Game One", null);
+        var game2 = new GameData(5678, null, null, "Game Two", null);
+        db.addGame(game1);
+        db.addGame(game2);
+        var gameListMap = db.listGames();
+        assertNotNull(gameListMap);
+        assertTrue(gameListMap.containsKey("games"));
+        var games = (Collection<GameData>) gameListMap.get("games");
+        assertEquals(2, games.size());
+        var names = games.stream().map(GameData::gameName).toList();
+        assertTrue(names.contains("Game One"));
+        assertTrue(names.contains("Game Two"));
+    }
+
+    @Test
+    void listGamesEmpty() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        HashMap<String,Collection> gameListMap = db.listGames();
+        assertNotNull(gameListMap);
+        assertTrue(gameListMap.containsKey("games"));
+        Collection games = gameListMap.get("games");
+        assertTrue(games.isEmpty());
+    }
+
+    @Test
+    void addGame() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        var game = new GameData(1234, null, null, "My Game", null);
+        db.addGame(game);
+        var games = (Collection<GameData>) db.listGames().get("games");
+        assertEquals(1, games.size());
+        GameData retrievedGame = games.iterator().next();
+        assertEquals("My Game", retrievedGame.gameName());
+        assertNotNull(retrievedGame.gameID());
+    }
+
+    @Test
+    void joinGame() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        db.createUser(new UserData("new", "password", "new@new.com"));
+        var auth1 = new AuthData("new", "authToken1");
+        db.addAuth(auth1);
+        db.createUser(new UserData("newer", "password", "new@new.com"));
+        var auth2 = new AuthData("newer", "authToken2");
+        db.addAuth(auth2);
+        var game = new GameData(1234, null, null, "Empty Game", null);
+        db.addGame(game);
+        var games = (Collection<GameData>) db.listGames().get("games");
+        assertNotNull(1234);
+        db.joinGame(1234, "WHITE", "authToken1");
+        var updatedGames = (Collection<GameData>) db.listGames().get("games");
+        GameData updatedGame = updatedGames.iterator().next();
+        assertEquals("new", updatedGame.whiteUsername());
+        assertNull(updatedGame.blackUsername());
+        db.joinGame(1234, "BLACK", "authToken2");
+        var finalGames = (Collection<GameData>) db.listGames().get("games");
+        GameData finalGame = finalGames.iterator().next();
+        assertEquals("new", finalGame.whiteUsername());
+        assertEquals("newer", finalGame.blackUsername());
+    }
+
+    @Test
+    void joinGameFail() throws Exception {
+        DataAccess db = new SQLDataAccess();
+        db.createUser(new UserData("new", "password", "new@new.com"));
+        var auth1 = new AuthData("new", "authToken1");
+        db.addAuth(auth1);
+        db.createUser(new UserData("newer", "password", "new@new.com"));
+        var auth2 = new AuthData("newer", "authToken2");
+        db.addAuth(auth2);
+        var game = new GameData(1234, null, null, "Test Game", null);
+        db.addGame(game);
+        var games = (Collection<GameData>) db.listGames().get("games");
+        db.joinGame(1234, "WHITE", "authToken1");
+        assertThrows(DataAccessException.class, () -> {
+            db.joinGame(1234, "WHITE", "authToken2");
+        });
+    }
 }
