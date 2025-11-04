@@ -115,7 +115,7 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void addGame(GameData game) throws DataAccessException {
-        var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO games (id, name, json) VALUES (?, ?, ?)";
         var serializer = new Gson();
         String serialized = serializer.toJson(game);
         executeUpdate(statement, game.gameID(), game.gameName(), serialized);
@@ -127,7 +127,7 @@ public class SQLDataAccess implements DataAccess {
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM games WHERE id=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1, auth);
+                ps.setInt(1, gameID);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         game = readGame(rs);

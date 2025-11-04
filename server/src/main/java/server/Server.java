@@ -50,6 +50,10 @@ public class Server {
             ctx.status(200);
             ctx.result(String.format("{\"username\": \"%s\", \"authToken\": \"%s\"}",authData.username(),authData.authToken()));
 
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("username already taken")) {
@@ -66,14 +70,17 @@ public class Server {
     private void clear(Context ctx) {
         try {
             userService.clear();
-        }
-        catch (Exception ex){
+            ctx.status(200);
+            ctx.result("{}");
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
+        } catch (Exception ex){
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             ctx.status(500);
             ctx.result(msg);
         }
-        ctx.status(200);
-        ctx.result("{}");
     }
 
     private void login(Context ctx) {
@@ -87,6 +94,10 @@ public class Server {
             ctx.status(200);
             ctx.result(String.format("{\"username\": \"%s\", \"authToken\": \"%s\"}",authData.username(),authData.authToken()));
 
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
@@ -109,6 +120,10 @@ public class Server {
             ctx.status(200);
             ctx.result("{}");
 
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
@@ -134,6 +149,10 @@ public class Server {
             ctx.status(200);
             ctx.result(send);
 
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
@@ -163,6 +182,10 @@ public class Server {
 
             ctx.status(200);
             ctx.result(retVar);
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
@@ -190,6 +213,10 @@ public class Server {
             ctx.status(200);
             ctx.result("{}");
 
+        } catch (DataAccessException ex) {
+            String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
+            ctx.status(500);
+            ctx.result(msg);
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {

@@ -38,8 +38,8 @@ public class UserService {
             throw new Exception("unauthorized");
         }
         String entered = user.password();
-        String actual = dataAccess.getUser(user.username()).password();
-        if (entered.equals(actual)) {
+        String encrypted = dataAccess.getUser(user.username()).password();
+        if (BCrypt.checkpw(entered,encrypted)) {
             AuthData auth = new AuthData(user.username(), generateAuthToken());
             dataAccess.addAuth(auth);
             return auth;
