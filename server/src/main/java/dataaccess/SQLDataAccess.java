@@ -26,8 +26,8 @@ public class SQLDataAccess implements DataAccess {
                     s.executeUpdate("TRUNCATE TABLE " + table);
                 }
             }
-        } catch (SQLException e) {
-            throw new DataAccessException(String.format("Failed to clear database: %s", e.getMessage()));
+        } catch (SQLException ex) {
+            throw new DataAccessException(String.format("Failed to clear database: %s", ex.getMessage()));
         }
     }
 
@@ -66,7 +66,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public String getAuthUser(String auth) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT token, username FROM authentifier WHERE username=?";
+            var statement = "SELECT token, username FROM authentifier WHERE token=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, auth);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -83,7 +83,13 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void delAuth(String auth) throws DataAccessException {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (Statement s = conn.createStatement()) {
+                    s.executeUpdate("DELETE FROM authentifier WHERE token = '" + auth + "'");
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(String.format("Failed to delete authentifier token: %s", ex.getMessage()));
+        }
     }
 
     @Override
