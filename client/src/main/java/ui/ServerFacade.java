@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
@@ -13,19 +14,12 @@ import static ui.EscapeSequences.*;
 
 public class ServerFacade{
 
-    //board elements
-    private static final String LIGHT_SQUARE_COLOR = "";
-    private static final String LIGHT_PIECE_COLOR = "";
-    private static final String DARK_SQUARE_COLOR = "";
-    private static final String DARK_PIECE_COLOR = "";
-
     public static void main(String[] args){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
 
-        printCurrentBoard(out, "observer", new ChessGame());
-        //drawPlainBoard(out);
+        printCurrentBoard(out, "BLACK", new ChessGame());
 
     }
 
@@ -60,7 +54,7 @@ public class ServerFacade{
                 out.print(SET_TEXT_BOLD);
                 out.print(rows.get(row-2));
                 out.print(RESET_TEXT_BOLD_FAINT);
-                drawRow(out,row-1, game);
+                drawRow(out,row-1, game, color);
                 out.print(SET_BG_COLOR_BIRCH);
                 out.print(SET_TEXT_COLOR_BLACK);
                 out.print(SET_TEXT_BOLD);
@@ -73,11 +67,14 @@ public class ServerFacade{
         }
     }
 
-    public static void drawRow(PrintStream out, int row, ChessGame game){
+    public static void drawRow(PrintStream out, int row, ChessGame game, String color){
         var board = game.getBoard();
         ChessPosition position = null;
         ChessPiece.PieceType piece = null;
-        ChessGame.TeamColor color = null;
+        ChessGame.TeamColor pieceColor = null;
+        if (! color.equals("BLACK")) {
+            board = switchView(board);
+        }
         var squareColor = row % 2 == 0 ? "light" : "dark";
         for (int col = 1; col <= 8; col++) {
             squareColor = swapColor(squareColor);
@@ -90,19 +87,27 @@ public class ServerFacade{
                 out.print(EMPTY);
             } else {
                 piece = board.getPiece(position).getPieceType();
-                color = board.getPiece(position).getTeamColor();
-                if (color == ChessGame.TeamColor.BLACK) {
+                pieceColor = board.getPiece(position).getTeamColor();
+                if (pieceColor == ChessGame.TeamColor.BLACK) {
                     out.print(SET_TEXT_COLOR_BLACK);
+                    switch (piece) {
+                        case PAWN -> out.print(BLACK_PAWN);
+                        case KNIGHT -> out.print(BLACK_KNIGHT);
+                        case ROOK -> out.print(BLACK_ROOK);
+                        case BISHOP -> out.print(BLACK_BISHOP);
+                        case KING -> out.print(BLACK_KING);
+                        case QUEEN -> out.print(BLACK_QUEEN);
+                    }
                 } else {
                     out.print(SET_TEXT_COLOR_WHITE);
-                }
-                switch (piece) {
-                    case PAWN -> out.print(BLACK_PAWN);
-                    case KNIGHT -> out.print(BLACK_KNIGHT);
-                    case ROOK -> out.print(BLACK_ROOK);
-                    case BISHOP -> out.print(BLACK_BISHOP);
-                    case KING -> out.print(BLACK_KING);
-                    case QUEEN -> out.print(BLACK_QUEEN);
+                    switch (piece) {
+                        case PAWN -> out.print(WHITE_PAWN);
+                        case KNIGHT -> out.print(WHITE_KNIGHT);
+                        case ROOK -> out.print(WHITE_ROOK);
+                        case BISHOP -> out.print(WHITE_BISHOP);
+                        case KING -> out.print(WHITE_KING);
+                        case QUEEN -> out.print(WHITE_QUEEN);
+                    }
                 }
             }
         }
@@ -110,6 +115,18 @@ public class ServerFacade{
 
     static String swapColor(String color){
         return color.equals("dark") ? "light" : "dark";
+    }
+
+    static ChessBoard switchView(ChessBoard board){
+        ChessBoard newBoard = new ChessBoard();
+        for (int row = 1; row <=8; row++){
+            for (int col = 1; col <=8; col++){
+                ChessPosition switched = new ChessPosition(9-row,9-col);
+                ChessPiece piece = board.getPiece(new ChessPosition(row,col));
+                newBoard.addPiece(switched,piece);
+            }
+        }
+        return newBoard;
     }
 
     //public static void drawHighlightedBoard(PrintStream out, ?)
