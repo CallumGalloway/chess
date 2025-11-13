@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -19,8 +16,14 @@ public class ServerFacade{
 
         out.print(ERASE_SCREEN);
 
-        printCurrentBoard(out, "BLACK", new ChessGame());
+        ChessGame game = new ChessGame();
 
+        try {
+            game.makeMove(new ChessMove(new ChessPosition(2, 2), new ChessPosition(3, 2), null));
+        } catch (Exception ex) {
+
+        }
+        printCurrentBoard(out, "BLACK", game);
     }
 
     public static void printCurrentBoard(PrintStream out, String color, ChessGame game){
@@ -82,7 +85,7 @@ public class ServerFacade{
                 case "dark" -> out.print(SET_BG_COLOR_CHERRY);
                 case "light" -> out.print(SET_BG_COLOR_MIDWOOD);
             }
-            position = new ChessPosition(row, col);
+            position = new ChessPosition(row, 9-col);
             if (board.getPiece(position)==null) {
                 out.print(EMPTY);
             } else {
