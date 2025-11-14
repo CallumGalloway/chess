@@ -9,7 +9,7 @@ import java.util.List;
 
 import static ui.EscapeSequences.*;
 
-public class ServerFacade{
+public class BoardDisplay {
 
     public static void main(String[] args){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
