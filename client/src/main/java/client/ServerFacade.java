@@ -9,42 +9,58 @@ import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.Arrays;
 
 public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+    public State state;
 
     public ServerFacade(String url) {
         serverUrl = url;
+        state = State.SIGNED_OUT;
     }
 
-    public void login(String[] args) throws Exception {
-
+    public String login(String[] args) throws Exception {
+        state = State.SIGNED_IN;
+        return "logged in!";
     }
 
-    public void logout() throws Exception {
-
+    public String register(String[] args) throws Exception {
+        state = State.SIGNED_IN;
+        return "registered!";
     }
 
-    public void listGames() throws Exception {
-
+    public String logout() throws Exception {
+        state = State.SIGNED_OUT;
+        return "logged out!";
     }
 
-    public ChessGame createGame() throws Exception {
-        return new ChessGame();
+    public String listGames() throws Exception {
+        return "games!";
     }
 
-    public ChessGame joinGame() throws Exception {
-        return new ChessGame();
+    public String createGame(String[] args) throws Exception {
+        return "game made heeheehoohoo";
     }
 
-    public ChessGame retrieveGameData() throws Exception {
-        return new ChessGame();
+    public String joinGame(String[] args) throws Exception {
+        return "game joined heeheehoohoo";
     }
 
-    public void updateGameData() throws Exception {
+    public String observeGame(String[] args) throws Exception {
+        String[] observerArgs = Arrays.copyOf(args, args.length +1);
+        observerArgs[observerArgs.length - 1] = "observer";
+        return joinGame(observerArgs);
+    }
 
+    public String retrieveGameData(String[] args) throws Exception {
+        return "game data heeheehoohoo";
+    }
+
+    public String updateGameData() throws Exception {
+        return "";
     }
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws Exception {
