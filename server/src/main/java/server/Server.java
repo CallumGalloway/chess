@@ -14,6 +14,7 @@ public class Server {
 
     private final Javalin javalin;
     private UserService userService;
+    private GameService gameService;
 
     public Server() {
         DataAccess dataAccess;
@@ -141,7 +142,7 @@ public class Server {
         try {
             var auth = ctx.header("authorization");
 
-            HashMap list = userService.listGames(auth);
+            HashMap list = gameService.listGames(auth);
 
             var serializer = new Gson();
             String send = serializer.toJson(list);
@@ -174,7 +175,7 @@ public class Server {
             var gameName = serializer.fromJson(reqJson, GameName.class);
             String name = gameName.gameName();
 
-            var gameID = userService.addGame(name, auth);
+            var gameID = gameService.addGame(name, auth);
             // var formatted = String.format("{\"gameID\": %d}", gameID);
             var formatted = new HashMap<String, Integer>();
             formatted.put("gameID",gameID);
@@ -208,7 +209,7 @@ public class Server {
             Integer gameID = gameInfo.gameID();
             String color = gameInfo.playerColor();
 
-            userService.joinGame(gameID, color, auth);
+            gameService.joinGame(gameID, color, auth);
 
             ctx.status(200);
             ctx.result("{}");
