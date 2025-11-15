@@ -101,9 +101,10 @@ class UserServiceTest {
     void listGamesPositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
         db.addGame(new GameData(123, null, null, "testGame", null));
-        HashMap games = userService.listGames(authData.authToken());
+        HashMap games = gameService.listGames(authData.authToken());
         assertNotNull(games);
         assertNotNull(games.get("games"));
         assertEquals(1, ((java.util.Collection)games.get("games")).size());
@@ -113,9 +114,10 @@ class UserServiceTest {
     void listGamesNegativeUnauthorized() {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
 
         Exception exception = assertThrows(Exception.class, () -> {
-            userService.listGames("fakeAuthToken");
+            gameService.listGames("fakeAuthToken");
         });
         assertEquals("unauthorized", exception.getMessage());
     }
@@ -124,8 +126,9 @@ class UserServiceTest {
     void addGamePositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
-        Integer games = userService.addGame("newGame", authData.authToken());
+        Integer games = gameService.addGame("newGame", authData.authToken());
         assertNotNull(games);
     }
 
@@ -133,15 +136,16 @@ class UserServiceTest {
     void addGameNegative() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
         var authData = userService.register(new UserData("player", "pass", "p@p.com"));
 
         Exception exception = assertThrows(Exception.class, () -> {
-            userService.addGame(null, authData.authToken()); // Null game name
+            gameService.addGame(null, authData.authToken()); // Null game name
         });
         assertEquals("Bad Request", exception.getMessage());
 
         Exception exception2 = assertThrows(Exception.class, () -> {
-            userService.addGame("newGame", "fakeAuthToken");
+            gameService.addGame("newGame", "fakeAuthToken");
         });
         assertEquals("unauthorized", exception2.getMessage());
     }
@@ -150,9 +154,10 @@ class UserServiceTest {
     void joinGamePositive() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
-        Integer gameID = userService.addGame("gameToJoin", authData.authToken());
-        userService.joinGame(gameID, "WHITE", authData.authToken());
+        Integer gameID = gameService.addGame("gameToJoin", authData.authToken());
+        gameService.joinGame(gameID, "WHITE", authData.authToken());
         GameData game = db.getGameFromID(gameID);
         assertEquals("new", game.whiteUsername());
     }
@@ -161,16 +166,17 @@ class UserServiceTest {
     void joinGameNegative() throws Exception {
         DataAccess db = new MemoryDataAccess();
         var userService = new UserService(db);
+        var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
-        Integer gameID = userService.addGame("gameToJoin", authData.authToken());
+        Integer gameID = gameService.addGame("gameToJoin", authData.authToken());
 // bad auth
         Exception exception = assertThrows(Exception.class, () -> {
-            userService.joinGame(gameID, "WHITE", "fakeAuthToken");
+            gameService.joinGame(gameID, "WHITE", "fakeAuthToken");
         });
         assertEquals("unauthorized", exception.getMessage());
 // bad color
         Exception exception2 = assertThrows(Exception.class, () -> {
-            userService.joinGame(gameID, "ORANGE", authData.authToken());
+            gameService.joinGame(gameID, "ORANGE", authData.authToken());
         });
         assertEquals("Bad Request", exception2.getMessage());
     }
