@@ -3,6 +3,7 @@ package client;
 import ui.*;
 import chess.*;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
@@ -10,24 +11,26 @@ import static ui.EscapeSequences.*;
 public class Client {
 
     private final ServerFacade server;
+    private State state;
 
     public Client(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
+        state = server.state;
     }
 
-    public static void repl(){
+    public void repl(){
         displayWelcome();
-        displayHelp();
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("quit")||!result.equals("exit")){
+        while (!result.equals("quitting...")&&!result.equals("exiting...")){
+            state = server.state;
             displayPrompt();
             String line = scanner.nextLine();
 
             try {
                 result = evaluate(line);
-                System.out.print(SET_TEXT_COLOR_ORANGE + result);
+                System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
 
             } catch (Exception ex) {
 
@@ -35,24 +38,71 @@ public class Client {
         }
     }
 
-    public static void displayWelcome(){
+    public void displayWelcome(){
+        System.out.print(SET_TEXT_COLOR_ORANGE + "WELCOME TO CALLUM'S CS 240 CHESS");
+        doubleLineBreak();
+        displayHelp();
+        System.out.println();
+        System.out.print(SET_TEXT_COLOR_ORANGE + "Log in to continue\n");
+    }
+
+    public String displayHelp(){
+        System.out.print(SET_TEXT_COLOR_TURQUOISE + SET_TEXT_BOLD + "Commands available:\n" + RESET_TEXT_BOLD_FAINT);
+        System.out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
+        System.out.print(SET_TEXT_COLOR_SILVER + "quit -- exits the program\n");
+        System.out.print(SET_TEXT_COLOR_WHITE + "login <USERNAME> <PASSWORD> -- log in to play chess\n");
+        System.out.print(SET_TEXT_COLOR_SILVER + "register <USERNAME> <EMAIL> <PASSWORD> -- create an account\n");
+        System.out.print(SET_TEXT_COLOR_TURQUOISE + "----------------------------\n");
+        return "";
+    }
+
+    public void displayPrompt(){
+        statePrefix();
+        System.out.print(SET_TEXT_COLOR_WHITE + SET_TEXT_BLINKING + SET_TEXT_BOLD + ">>> " + RESET_TEXT_BLINKING + RESET_TEXT_BOLD_FAINT);
+    }
+
+    public String evaluate(String input) {
+        try {
+            String[] tokens = input.toLowerCase().split(" ");
+            String cmd = (tokens.length > 0) ? tokens[0] : "help";
+            String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+            return switch (cmd) {
+                //pre login
+                case "help" -> displayHelp();
+                case "login" -> state == State.SIGNED_OUT ? server.login(params) : "You must be logged out to do that!";
+                case "register" -> state == State.SIGNED_OUT ? server.register(params) : "You must be logged out to do that!";
+                case "quit" -> "quitting...";
+                case "exit" -> "exiting...";
+                //post-login
+                case "logout" -> state == State.SIGNED_IN ? server.logout() : "You must be logged in to do that!";
+                case "create" -> state == State.SIGNED_IN ? server.createGame(params) : "You must be logged in to do that!";
+                case "list" -> state == State.SIGNED_IN ? server.listGames() : "You must be logged in to do that!";
+                case "join" -> state == State.SIGNED_IN ? server.joinGame(params) : "You must be logged in to do that!";
+                case "observe" -> state == State.SIGNED_IN ? server.observeGame(params) : "You must be logged in to do that!";
+
+                default -> displayHelp();
+            };
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+    }
+
+    public void displayPostLogin(){
 
     }
 
-    public static void displayHelp(){
-
+    public void statePrefix(){
+        if (state == State.SIGNED_OUT) {
+            System.out.print(SET_TEXT_COLOR_RED + "[[Logged Out]] ");
+        }
+        if (state == State.SIGNED_IN) {
+            System.out.print(SET_TEXT_COLOR_LIGHT_GREY + "[[Logged In]] ");
+        }
     }
 
-    public static void displayPrompt(){
-
-    }
-
-    public static String evaluate(String input) {
-        return "it works!";
-    }
-
-    public static void displayPostLogin(){
-
+    public static void doubleLineBreak(){
+        System.out.println();
+        System.out.println();
     }
 
 }
