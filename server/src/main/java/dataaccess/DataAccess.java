@@ -1,10 +1,7 @@
 package dataaccess;
 
-import chess.ChessGame;
-import com.google.gson.JsonObject;
-import datamodel.*;
-
 import java.util.HashMap;
+import datamodel.*;
 
 public interface DataAccess {
     void clear() throws DataAccessException;

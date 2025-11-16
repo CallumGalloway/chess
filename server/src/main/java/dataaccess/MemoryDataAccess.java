@@ -1,13 +1,8 @@
 package dataaccess;
 
-import chess.ChessGame;
-import com.google.gson.JsonObject;
 import datamodel.*;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 public class MemoryDataAccess implements DataAccess {
     private final HashMap<String, UserData> users = new HashMap<>();

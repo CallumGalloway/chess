@@ -1,12 +1,13 @@
 package dataaccess;
 
 import com.google.gson.Gson;
-import datamodel.*;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+
+import datamodel.*;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
