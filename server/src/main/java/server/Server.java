@@ -1,6 +1,5 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import datamodel.*;
@@ -27,6 +26,7 @@ public class Server {
             throw new RuntimeException(String.format("SQL connection failed, %s",ex));
         }
         userService = new UserService(dataAccess);
+        gameService = new GameService(dataAccess);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 

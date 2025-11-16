@@ -30,7 +30,19 @@ public class Client {
 
             try {
                 result = evaluate(line);
-                System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
+                if (result.contains("Error")){
+                    int start = result.indexOf("Error: ") + 7;
+                    int end = result.indexOf("\" }",start);
+                    String error = result.substring(start, end);
+                    System.out.print(SET_TEXT_COLOR_RED + error + "\n");
+                } else {
+                    System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
+                    if (result.contains("logged")){
+                        state = server.state;
+                        displayHelp();
+                        System.out.println();
+                    }
+                }
 
             } catch (Exception ex) {
 
@@ -47,12 +59,24 @@ public class Client {
     }
 
     public String displayHelp(){
-        System.out.print(SET_TEXT_COLOR_TURQUOISE + SET_TEXT_BOLD + "Commands available:\n" + RESET_TEXT_BOLD_FAINT);
-        System.out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
-        System.out.print(SET_TEXT_COLOR_SILVER + "quit -- exits the program\n");
-        System.out.print(SET_TEXT_COLOR_WHITE + "login <USERNAME> <PASSWORD> -- log in to play chess\n");
-        System.out.print(SET_TEXT_COLOR_SILVER + "register <USERNAME> <EMAIL> <PASSWORD> -- create an account\n");
-        System.out.print(SET_TEXT_COLOR_TURQUOISE + "----------------------------\n");
+        if (state == State.SIGNED_OUT) {
+            System.out.print(SET_TEXT_COLOR_TURQUOISE + SET_TEXT_BOLD + "Commands available:\n" + RESET_TEXT_BOLD_FAINT);
+            System.out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
+            System.out.print(SET_TEXT_COLOR_SILVER + "quit -- exits the program\n");
+            System.out.print(SET_TEXT_COLOR_WHITE + "login <USERNAME> <PASSWORD> -- log in to play chess\n");
+            System.out.print(SET_TEXT_COLOR_SILVER + "register <USERNAME> <EMAIL> <PASSWORD> -- create an account\n");
+            System.out.print(SET_TEXT_COLOR_TURQUOISE + "----------------------------");
+        } else if (state == State.SIGNED_IN) {
+            System.out.print(SET_TEXT_COLOR_TURQUOISE + SET_TEXT_BOLD + "Commands available:\n" + RESET_TEXT_BOLD_FAINT);
+            System.out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
+            System.out.print(SET_TEXT_COLOR_SILVER + "quit -- exits the program\n");
+            System.out.print(SET_TEXT_COLOR_WHITE + "logout -- log out of session\n");
+            System.out.print(SET_TEXT_COLOR_SILVER + "list -- list available games\n");
+            System.out.print(SET_TEXT_COLOR_WHITE + "create <NAME> -- create a game with the given name\n");
+            System.out.print(SET_TEXT_COLOR_SILVER + "join <GAME> -- join the game with the given id\n");
+            System.out.print(SET_TEXT_COLOR_WHITE + "observe <GAME> -- observe the game with the given id\n");
+            System.out.print(SET_TEXT_COLOR_TURQUOISE + "----------------------------");
+        }
         return "";
     }
 
@@ -85,10 +109,6 @@ public class Client {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-    }
-
-    public void displayPostLogin(){
-
     }
 
     public void statePrefix(){

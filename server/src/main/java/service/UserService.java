@@ -1,12 +1,10 @@
 package service;
 
-import chess.ChessGame;
 import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
 import datamodel.*;
+import dataaccess.DataAccessException;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 public class UserService {
@@ -16,7 +14,7 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(UserData user) throws Exception {
+    public datamodel.AuthData register(UserData user) throws Exception {
         if (user.username() == null || user.password() == null || user.username() == "" || user.password() == "") {
             throw new Exception("bad request");
         }
@@ -30,7 +28,7 @@ public class UserService {
         return auth;
     }
 
-    public AuthData login(UserData user) throws Exception {
+    public datamodel.AuthData login(UserData user) throws Exception {
         if (user.username() == null || user.password() == null || user.username() == "" || user.password() == "") {
             throw new Exception("bad request");
         }

@@ -1,8 +1,8 @@
 package service;
 
+import datamodel.*;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
-import datamodel.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

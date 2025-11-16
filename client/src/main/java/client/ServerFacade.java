@@ -1,7 +1,5 @@
 package client;
 
-import chess.*;
-
 import com.google.gson.Gson;
 
 import java.net.*;
@@ -10,57 +8,113 @@ import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Arrays;
+import java.util.HashMap;
+
+import datamodel.*;
 
 public class ServerFacade {
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
     public State state;
+    private String authToken;
 
     public ServerFacade(String url) {
         serverUrl = url;
         state = State.SIGNED_OUT;
+        authToken = null;
     }
 
-    public String login(String[] args) throws Exception {
-        state = State.SIGNED_IN;
-        return "logged in!";
+    public String login(String[] params) throws Exception {
+        if (params.length >= 2) {
+            var user = new UserData(params[0],params[1],null);
+            var request = buildRequest("POST", "/session", user,null,null);
+            var response = sendRequest(request);
+            AuthData auth = handleResponse(response, AuthData.class);
+            authToken = auth.authToken();
+            state = State.SIGNED_IN;
+            return "logged in!";
+        }
+        throw new Exception("Expected: <username> <password>\n");
     }
 
-    public String register(String[] args) throws Exception {
-        state = State.SIGNED_IN;
-        return "registered!";
+    public String register(String[] params) throws Exception {
+        if (params.length >= 3) {
+            var user = new UserData(params[0],params[1],params[2]);
+            var request = buildRequest("POST", "/user", user, null,null);
+            var response = sendRequest(request);
+            AuthData auth = handleResponse(response, AuthData.class);
+            authToken = auth.authToken();
+            state = State.SIGNED_IN;
+            return "registered!";
+        }
+        throw new Exception("Expected: <username> <password> <email>\n");
     }
 
     public String logout() throws Exception {
+        var request = buildRequest("DELETE","/session",null,"authorization",authToken);
+        var response = sendRequest(request);
+        handleResponse(response,null);
         state = State.SIGNED_OUT;
         return "logged out!";
     }
 
     public String listGames() throws Exception {
-        return "games!";
+        var request = buildRequest("GET","/game",null,"authorization",authToken);
+        var response = sendRequest(request);
+        var games = handleResponse(response, HashMap.class);
+        return "\n";
     }
 
-    public String createGame(String[] args) throws Exception {
+    public String createGame(String[] params) throws Exception {
         return "game made heeheehoohoo";
     }
 
-    public String joinGame(String[] args) throws Exception {
+    public String joinGame(String[] params) throws Exception {
         return "game joined heeheehoohoo";
     }
 
-    public String observeGame(String[] args) throws Exception {
-        String[] observerArgs = Arrays.copyOf(args, args.length +1);
-        observerArgs[observerArgs.length - 1] = "observer";
-        return joinGame(observerArgs);
+    public String observeGame(String[] params) throws Exception {
+        String[] observerparams = Arrays.copyOf(params, params.length +1);
+        observerparams[observerparams.length - 1] = "observer";
+        return joinGame(observerparams);
     }
 
-    public String retrieveGameData(String[] args) throws Exception {
+    public String retrieveGameData(String[] params) throws Exception {
         return "game data heeheehoohoo";
     }
 
     public String updateGameData() throws Exception {
         return "";
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body, String header, String value) {
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(serverUrl + path))
+                .method(method, makeRequestBody(body));
+        if (header != null) {
+            request.setHeader(header, value);
+        }
+        else if (body != null) {
+            request.setHeader("placeholder","unused");
+        }
+        return request.build();
+    }
+
+    private BodyPublisher makeRequestBody(Object request) {
+        if (request != null) {
+            return BodyPublishers.ofString(new Gson().toJson(request));
+        } else {
+            return BodyPublishers.noBody();
+        }
+    }
+
+    private HttpResponse<String> sendRequest(HttpRequest request) throws Exception {
+        try {
+            return client.send(request, BodyHandlers.ofString());
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+        }
     }
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws Exception {
