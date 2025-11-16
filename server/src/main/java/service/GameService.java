@@ -41,8 +41,10 @@ public class GameService {
         }
     }
 
-    public void joinGame(Integer gameID, String color, String auth) throws Exception {
+    public void joinGame(JoinData joinData, String auth) throws Exception {
         if (dataAccess.getAuthUser(auth) != null) {
+            var gameID = joinData.gameID();
+            var color = joinData.playerColor();
             if (gameID != null && color != null && (color.equals("WHITE") || color.equals("BLACK"))) {
                 try {
                     dataAccess.joinGame(gameID, color, auth);

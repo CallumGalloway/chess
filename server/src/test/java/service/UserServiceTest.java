@@ -157,7 +157,7 @@ class UserServiceTest {
         var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
         Integer gameID = gameService.addGame("gameToJoin", authData.authToken());
-        gameService.joinGame(gameID, "WHITE", authData.authToken());
+        gameService.joinGame(new JoinData("WHITE",gameID), authData.authToken());
         GameData game = db.getGameFromID(gameID);
         assertEquals("new", game.whiteUsername());
     }
@@ -171,12 +171,12 @@ class UserServiceTest {
         Integer gameID = gameService.addGame("gameToJoin", authData.authToken());
 // bad auth
         Exception exception = assertThrows(Exception.class, () -> {
-            gameService.joinGame(gameID, "WHITE", "fakeAuthToken");
+            gameService.joinGame(new JoinData("WHITE",gameID), "fakeAuthToken");
         });
         assertEquals("unauthorized", exception.getMessage());
 // bad color
         Exception exception2 = assertThrows(Exception.class, () -> {
-            gameService.joinGame(gameID, "ORANGE", authData.authToken());
+            gameService.joinGame(new JoinData("ORANGE",gameID), authData.authToken());
         });
         assertEquals("Bad Request", exception2.getMessage());
     }

@@ -206,10 +206,8 @@ public class Server {
             var serializer = new Gson();
             String reqJson = ctx.body();
             var gameInfo = serializer.fromJson(reqJson, JoinData.class);
-            Integer gameID = gameInfo.gameID();
-            String color = gameInfo.playerColor();
 
-            gameService.joinGame(gameID, color, auth);
+            gameService.joinGame(gameInfo, auth);
 
             ctx.status(200);
             ctx.result("{}");

@@ -68,7 +68,7 @@ public class ServerFacade {
     }
 
     public String createGame(String[] params) throws Exception {
-        if (params.length <= 1) {
+        if (params.length >= 1) {
             var gameName = new GameName(params[0]);
             var request = buildRequest("POST", "/game", gameName, "authorization", authToken);
             var response = sendRequest(request);
@@ -78,18 +78,52 @@ public class ServerFacade {
         throw new Exception("Expected: <NAME>\n");
     }
 
-    public GameData joinGame(String[] params) throws Exception {
-        return null;
+    public JoinData joinGame(String[] params) throws Exception {
+        if (params.length >= 2) {
+            int id = Integer.parseInt(params[0]);
+            String color = params[1].toUpperCase();
+
+            var gameList = listGames();
+            GameData gameToJoin = findGame(id, gameList);
+
+            JoinData joinData = null;
+            if (color.equals("WHITE") || color.equals("BLACK")) {
+                joinData = new JoinData(color,gameToJoin.gameID());
+            } else {
+                return new JoinData("Observer",gameToJoin.gameID());
+            }
+
+            var request = buildRequest("PUT","/game",joinData,"authorization",authToken);
+            var response = sendRequest(request);
+            handleResponse(response, null);
+
+            return joinData;
+        }
+        throw new Exception("Expected: <NUMBER> <WHITE/BLACK>");
+
     }
 
-    public GameData observeGame(String[] params) throws Exception {
+    public GameData findGame(int id, GameList gameList) throws Exception {
+        var list = gameList.list();
+        GameData gameFound = null;
+        if (id > list.size()) {
+            for (int game = 0; game < list.size(); game++) {
+                if (list.get(game).gameID() == id){
+                    gameFound = list.get(game);
+                    return gameFound;
+                }
+            }
+        } else {
+            gameFound = list.get(id-1);
+            return gameFound;
+        }
+        throw new Exception("game not found.");
+    }
+
+    public JoinData observeGame(String[] params) throws Exception {
         String[] observerParams = Arrays.copyOf(params, params.length +1);
-        observerParams[observerParams.length - 1] = "observer";
+        observerParams[observerParams.length - 1] = "OBSERVER";
         return joinGame(observerParams);
-    }
-
-    public GameData retrieveGameData(String[] params) throws Exception {
-        return null;
     }
 
     public String updateGameData() throws Exception {
