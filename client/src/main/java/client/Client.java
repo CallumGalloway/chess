@@ -35,8 +35,17 @@ public class Client {
                     int end = result.indexOf("\" }", start);
                     String error = result.substring(start, end);
                     System.out.print(SET_TEXT_COLOR_RED + error + "\n");
-                } else if (result.contains("GAMES LIST")) {
-
+                } else if (result.contains("|")) {
+                    result = result.substring(11);
+                    String[] games = result.split(",");
+                    if (games.length == 0) {
+                        for (int game = 0; game < games.length; game++) {
+                            String print = "Game #" + (game + 1) + " " + games[game] + "\n";
+                            System.out.print(SET_TEXT_COLOR_TURQUOISE + print);
+                        }
+                    } else {
+                        System.out.print(SET_TEXT_COLOR_TURQUOISE + "There are no available games. Try creating one!\n");
+                    }
                 } else {
                     System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
                     if (result.contains("logged")){

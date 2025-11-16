@@ -65,9 +65,9 @@ public class ServerFacade {
         var response = sendRequest(request);
         GameList games = handleResponse(response, GameList.class);
         ArrayList<GameData> list = games.list();
-        String retVar = "GAMES LIST |";
+        String retVar = "GAMES LIST|";
         for (int idx = 0; idx < list.size(); idx++)
-            retVar = retVar + list.get(idx).gameName();
+            retVar = retVar + list.get(idx).gameName() + ",";
         return retVar;
     }
 

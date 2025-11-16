@@ -182,7 +182,7 @@ public class SQLDataAccess implements DataAccess {
             """
             CREATE TABLE IF NOT EXISTS games (
               `id` int NOT NULL,
-              `name` varchar(256) NOT NULL,
+              `name` varchar(256) NOT NULL UNIQUE,
               `json` TEXT DEFAULT NULL,
               PRIMARY KEY (`id`),
               INDEX(name)
