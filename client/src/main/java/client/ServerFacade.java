@@ -60,15 +60,11 @@ public class ServerFacade {
         return "logged out!";
     }
 
-    public String listGames() throws Exception {
+    public GameList listGames() throws Exception {
         var request = buildRequest("GET","/game",null,"authorization",authToken);
         var response = sendRequest(request);
         GameList games = handleResponse(response, GameList.class);
-        ArrayList<GameData> list = games.list();
-        String retVar = "GAMES LIST|";
-        for (int idx = 0; idx < list.size(); idx++)
-            retVar = retVar + list.get(idx).gameName() + ",";
-        return retVar;
+        return games;
     }
 
     public String createGame(String[] params) throws Exception {
@@ -82,18 +78,18 @@ public class ServerFacade {
         throw new Exception("Expected: <NAME>\n");
     }
 
-    public String joinGame(String[] params) throws Exception {
-        return "game joined heeheehoohoo";
+    public GameData joinGame(String[] params) throws Exception {
+        return null;
     }
 
-    public String observeGame(String[] params) throws Exception {
+    public GameData observeGame(String[] params) throws Exception {
         String[] observerParams = Arrays.copyOf(params, params.length +1);
         observerParams[observerParams.length - 1] = "observer";
         return joinGame(observerParams);
     }
 
-    public String retrieveGameData(String[] params) throws Exception {
-        return "game data heeheehoohoo";
+    public GameData retrieveGameData(String[] params) throws Exception {
+        return null;
     }
 
     public String updateGameData() throws Exception {

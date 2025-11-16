@@ -1,5 +1,6 @@
 package client;
 
+import datamodel.*;
 import ui.*;
 import chess.*;
 
@@ -22,7 +23,7 @@ public class Client {
         displayWelcome();
 
         Scanner scanner = new Scanner(System.in);
-        var result = "";
+        Object result = null;
         while (!result.equals("quitting...")&&!result.equals("exiting...")){
             state = server.state;
             displayPrompt();
@@ -30,33 +31,24 @@ public class Client {
 
             try {
                 result = evaluate(line);
-                if (result.contains("Error")) {
-                    int start = result.indexOf("Error: ") + 7;
-                    int end = result.indexOf("\" }", start);
-                    String error = result.substring(start, end);
-                    System.out.print(SET_TEXT_COLOR_RED + error + "\n");
-                } else if (result.contains("|")) {
-                    result = result.substring(11);
-                    String[] games = result.split(",");
-                    if (games.length == 0) {
-                        for (int game = 0; game < games.length; game++) {
-                            String print = "Game #" + (game + 1) + " " + games[game] + "\n";
-                            System.out.print(SET_TEXT_COLOR_TURQUOISE + print);
-                        }
+                if (result instanceof String){
+                    if (result.toString().contains("Error")) {
+                        displayError(result.toString());
                     } else {
-                        System.out.print(SET_TEXT_COLOR_TURQUOISE + "There are no available games. Try creating one!\n");
+                        System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
+                        if (result.toString().contains("logged")){
+                            state = server.state;
+                            displayHelp();
+                            System.out.println();
+                        }
                     }
-                } else {
-                    System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
-                    if (result.contains("logged")){
-                        state = server.state;
-                        displayHelp();
-                        System.out.println();
-                    }
+                } else if (result instanceof GameList) {
+                    displayGameList((GameList) result);
+                } else if (result instanceof GameData){
+                    displayGame((GameData) result);
                 }
-
             } catch (Exception ex) {
-
+                System.out.print("An error has occurred. Message: " + ex.getMessage());
             }
         }
     }
@@ -96,7 +88,7 @@ public class Client {
         System.out.print(SET_TEXT_COLOR_WHITE + SET_TEXT_BLINKING + SET_TEXT_BOLD + ">>> " + RESET_TEXT_BLINKING + RESET_TEXT_BOLD_FAINT);
     }
 
-    public String evaluate(String input) {
+    public Object evaluate(String input) {
         try {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
@@ -136,4 +128,26 @@ public class Client {
         System.out.println();
     }
 
+    private void displayError(String result){
+        int start = result.indexOf("Error: ") + 7;
+        int end = result.indexOf("\" }", start);
+        String error = result.substring(start, end);
+        System.out.print(SET_TEXT_COLOR_RED + error + "\n");
+    }
+
+    private void displayGameList(GameList gameList){
+        var games = gameList.list();
+        if (games.size() != 0) {
+            for (int game = 0; game < games.size(); game++) {
+                String print = "Game #" + (game + 1) + " " + games.get(game) + "\n";
+                System.out.print(SET_TEXT_COLOR_TURQUOISE + print);
+            }
+        } else {
+            System.out.print(SET_TEXT_COLOR_TURQUOISE + "There are no available games. Try creating one!\n");
+        }
+    }
+
+    private void displayGame(GameData gameData){
+
+    }
 }
