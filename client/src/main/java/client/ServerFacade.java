@@ -7,6 +7,7 @@ import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -62,12 +63,23 @@ public class ServerFacade {
     public String listGames() throws Exception {
         var request = buildRequest("GET","/game",null,"authorization",authToken);
         var response = sendRequest(request);
-        var games = handleResponse(response, HashMap.class);
-        return "\n";
+        GameList games = handleResponse(response, GameList.class);
+        ArrayList<GameData> list = games.list();
+        String retVar = "GAMES LIST |";
+        for (int idx = 0; idx < list.size(); idx++)
+            retVar = retVar + list.get(idx).gameName();
+        return retVar;
     }
 
     public String createGame(String[] params) throws Exception {
-        return "game made heeheehoohoo";
+        if (params.length <= 1) {
+            var gameName = new GameName(params[0]);
+            var request = buildRequest("POST", "/game", gameName, "authorization", authToken);
+            var response = sendRequest(request);
+            var game = handleResponse(response,GameData.class);
+            return "game created: " + params[0] + ", with ID: " + game.gameID();
+        }
+        throw new Exception("Expected: <NAME>\n");
     }
 
     public String joinGame(String[] params) throws Exception {
@@ -75,9 +87,9 @@ public class ServerFacade {
     }
 
     public String observeGame(String[] params) throws Exception {
-        String[] observerparams = Arrays.copyOf(params, params.length +1);
-        observerparams[observerparams.length - 1] = "observer";
-        return joinGame(observerparams);
+        String[] observerParams = Arrays.copyOf(params, params.length +1);
+        observerParams[observerParams.length - 1] = "observer";
+        return joinGame(observerParams);
     }
 
     public String retrieveGameData(String[] params) throws Exception {

@@ -30,11 +30,13 @@ public class Client {
 
             try {
                 result = evaluate(line);
-                if (result.contains("Error")){
+                if (result.contains("Error")) {
                     int start = result.indexOf("Error: ") + 7;
-                    int end = result.indexOf("\" }",start);
+                    int end = result.indexOf("\" }", start);
                     String error = result.substring(start, end);
                     System.out.print(SET_TEXT_COLOR_RED + error + "\n");
+                } else if (result.contains("GAMES LIST")) {
+
                 } else {
                     System.out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
                     if (result.contains("logged")){

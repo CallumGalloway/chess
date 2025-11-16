@@ -104,10 +104,10 @@ class UserServiceTest {
         var gameService = new GameService(db);
         var authData = userService.register(new UserData("new", "password", "new@new.com"));
         db.addGame(new GameData(123, null, null, "testGame", null));
-        HashMap games = gameService.listGames(authData.authToken());
+        GameList games = gameService.listGames(authData.authToken());
         assertNotNull(games);
-        assertNotNull(games.get("games"));
-        assertEquals(1, ((java.util.Collection)games.get("games")).size());
+        assertNotNull(games.list());
+        assertEquals(1, (games.list().size()));
     }
 
     @Test

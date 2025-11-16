@@ -94,7 +94,7 @@ public class SQLDataAccess implements DataAccess {
     }
 
     @Override
-    public HashMap listGames() throws DataAccessException {
+    public GameList listGames() throws DataAccessException {
         var gamesList = new ArrayList<GameData>();
         var statement = "SELECT json FROM games";
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -109,9 +109,7 @@ public class SQLDataAccess implements DataAccess {
         } catch (Exception ex) {
             throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
         }
-        HashMap<String, Collection> list = new HashMap<>();
-        list.put("games", gamesList);
-        return list;
+        return new GameList(gamesList);
     }
 
     @Override

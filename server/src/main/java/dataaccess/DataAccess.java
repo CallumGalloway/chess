@@ -10,7 +10,7 @@ public interface DataAccess {
     void addAuth(AuthData auth) throws DataAccessException;
     String getAuthUser(String auth) throws DataAccessException;
     void delAuth(String auth) throws DataAccessException;
-    HashMap listGames() throws DataAccessException;
+    GameList listGames() throws DataAccessException;
     void addGame(GameData game) throws DataAccessException;
     void joinGame(Integer gameID, String color, String auth) throws DataAccessException;
     GameData getGameFromID(Integer gameID) throws DataAccessException;

@@ -116,10 +116,9 @@ class SQLDataAccessTest {
         var game2 = new GameData(5678, null, null, "Game Two", null);
         db.addGame(game1);
         db.addGame(game2);
-        var gameListMap = db.listGames();
-        assertNotNull(gameListMap);
-        assertTrue(gameListMap.containsKey("games"));
-        var games = (Collection<GameData>) gameListMap.get("games");
+        var gameList = db.listGames();
+        assertNotNull(gameList);
+        var games = (Collection<GameData>) gameList.list();
         assertEquals(2, games.size());
         var names = games.stream().map(GameData::gameName).toList();
         assertTrue(names.contains("Game One"));
@@ -129,10 +128,9 @@ class SQLDataAccessTest {
     @Test
     void listGamesEmpty() throws Exception {
         DataAccess db = new SQLDataAccess();
-        HashMap<String,Collection> gameListMap = db.listGames();
-        assertNotNull(gameListMap);
-        assertTrue(gameListMap.containsKey("games"));
-        Collection games = gameListMap.get("games");
+        GameList gameList = db.listGames();
+        assertNotNull(gameList);
+        Collection games = gameList.list();
         assertTrue(games.isEmpty());
     }
 
@@ -141,7 +139,7 @@ class SQLDataAccessTest {
         DataAccess db = new SQLDataAccess();
         var game = new GameData(1234, null, null, "My Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().get("games");
+        var games = (Collection<GameData>) db.listGames().list();
         assertEquals(1, games.size());
         GameData retrievedGame = games.iterator().next();
         assertEquals("My Game", retrievedGame.gameName());
@@ -159,15 +157,15 @@ class SQLDataAccessTest {
         db.addAuth(auth2);
         var game = new GameData(1234, null, null, "Empty Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().get("games");
+        var games = (Collection<GameData>) db.listGames().list();
         assertNotNull(1234);
         db.joinGame(1234, "WHITE", "authToken1");
-        var updatedGames = (Collection<GameData>) db.listGames().get("games");
+        var updatedGames = (Collection<GameData>) db.listGames().list();
         GameData updatedGame = updatedGames.iterator().next();
         assertEquals("new", updatedGame.whiteUsername());
         assertNull(updatedGame.blackUsername());
         db.joinGame(1234, "BLACK", "authToken2");
-        var finalGames = (Collection<GameData>) db.listGames().get("games");
+        var finalGames = (Collection<GameData>) db.listGames().list();
         GameData finalGame = finalGames.iterator().next();
         assertEquals("new", finalGame.whiteUsername());
         assertEquals("newer", finalGame.blackUsername());
@@ -184,7 +182,7 @@ class SQLDataAccessTest {
         db.addAuth(auth2);
         var game = new GameData(1234, null, null, "Test Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().get("games");
+        var games = (Collection<GameData>) db.listGames().list();
         db.joinGame(1234, "WHITE", "authToken1");
         assertThrows(DataAccessException.class, () -> {
             db.joinGame(1234, "WHITE", "authToken2");

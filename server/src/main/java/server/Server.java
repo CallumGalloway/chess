@@ -142,7 +142,7 @@ public class Server {
         try {
             var auth = ctx.header("authorization");
 
-            HashMap list = gameService.listGames(auth);
+            GameList list = gameService.listGames(auth);
 
             var serializer = new Gson();
             String send = serializer.toJson(list);

@@ -2,7 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccess;
-import datamodel.GameData;
+import datamodel.*;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -15,7 +15,7 @@ public class GameService {
         this.dataAccess = dataAccess;
     }
 
-    public HashMap listGames(String auth) throws Exception {
+    public GameList listGames(String auth) throws Exception {
         if (dataAccess.getAuthUser(auth) != null) {
             var games = dataAccess.listGames();
             return games;

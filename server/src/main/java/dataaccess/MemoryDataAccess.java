@@ -1,6 +1,8 @@
 package dataaccess;
 
 import datamodel.*;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -35,10 +37,10 @@ public class MemoryDataAccess implements DataAccess {
     public void delAuth(String auth) throws DataAccessException { authentifier.remove(auth); }
 
     @Override
-    public HashMap<String, Collection> listGames() throws DataAccessException {
-        HashMap<String, Collection> list = new HashMap<>();
-        list.put("games",games.values());
-        return list;
+    public GameList listGames() throws DataAccessException {
+        ArrayList<GameData> list = new ArrayList<>();
+        list.addAll(games.values());
+        return new GameList(list);
     }
 
     @Override
