@@ -2,11 +2,9 @@ package client;
 
 import datamodel.*;
 import ui.*;
-import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -81,7 +79,7 @@ public class Client {
             out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
             out.print(SET_TEXT_COLOR_SILVER + "quit -- exits the program\n");
             out.print(SET_TEXT_COLOR_WHITE + "logout -- log out of session\n");
-            out.print(SET_TEXT_COLOR_SILVER + "list -- list available games\n");
+            out.print(SET_TEXT_COLOR_SILVER + "games -- games available games\n");
             out.print(SET_TEXT_COLOR_WHITE + "create <NAME> -- create a game with the given name\n");
             out.print(SET_TEXT_COLOR_SILVER + "join <GAME> <WHITE/BLACK> -- join the game with the given id and color\n");
             out.print(SET_TEXT_COLOR_WHITE + "observe <GAME> -- observe the game with the given id\n");
@@ -110,7 +108,7 @@ public class Client {
                 //post-login
                 case "logout" -> state == State.SIGNED_IN ? server.logout() : "You must be logged in to do that!";
                 case "create" -> state == State.SIGNED_IN ? server.createGame(params) : "You must be logged in to do that!";
-                case "list" -> state == State.SIGNED_IN ? server.listGames() : "You must be logged in to do that!";
+                case "games" -> state == State.SIGNED_IN ? server.listGames() : "You must be logged in to do that!";
                 case "join" -> state == State.SIGNED_IN ? server.joinGame(params) : "You must be logged in to do that!";
                 case "observe" -> state == State.SIGNED_IN ? server.observeGame(params) : "You must be logged in to do that!";
 
@@ -143,7 +141,7 @@ public class Client {
     }
 
     private void displayGameList(GameList gameList){
-        var games = gameList.list();
+        var games = gameList.games();
         if (games.size() != 0) {
             for (int game = 0; game < games.size(); game++) {
                 String print = "Game #" + (game + 1) + " " + games.get(game).gameName() + "\n";

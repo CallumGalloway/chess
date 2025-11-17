@@ -82,7 +82,7 @@ public class ChessBoardTests extends EqualsTestingUtility<ChessBoard> {
                 ChessPiece.PieceType.KING, ChessPiece.PieceType.ROOK,
         };
 
-        // Generate boards each with one piece added from a static list.
+        // Generate boards each with one piece added from a static games.
         // The color is assigned in a mixed pattern.
         ChessPiece.PieceType type;
         boolean isWhite;

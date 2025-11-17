@@ -113,7 +113,7 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        // if a move is not in the list of moves, throw exception
+        // if a move is not in the games of moves, throw exception
         ArrayList<ChessMove> valid = new ArrayList<ChessMove>();
         valid.addAll(validMoves(move.getStartPosition()));
 
@@ -139,8 +139,8 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         // find king of given color and note position
-        // while we go, add all enemy's moves to a list
-        // check list for an endPosition that matches the king's position
+        // while we go, add all enemy's moves to a games
+        // check games for an endPosition that matches the king's position
         // if so, return true. else, false.
         ChessPiece[][] squares = this.board.squares;
         ChessPiece piece;

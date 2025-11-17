@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 import datamodel.*;
 
@@ -118,7 +117,7 @@ class SQLDataAccessTest {
         db.addGame(game2);
         var gameList = db.listGames();
         assertNotNull(gameList);
-        var games = (Collection<GameData>) gameList.list();
+        var games = (Collection<GameData>) gameList.games();
         assertEquals(2, games.size());
         var names = games.stream().map(GameData::gameName).toList();
         assertTrue(names.contains("Game One"));
@@ -130,7 +129,7 @@ class SQLDataAccessTest {
         DataAccess db = new SQLDataAccess();
         GameList gameList = db.listGames();
         assertNotNull(gameList);
-        Collection games = gameList.list();
+        Collection games = gameList.games();
         assertTrue(games.isEmpty());
     }
 
@@ -139,7 +138,7 @@ class SQLDataAccessTest {
         DataAccess db = new SQLDataAccess();
         var game = new GameData(1234, null, null, "My Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().list();
+        var games = (Collection<GameData>) db.listGames().games();
         assertEquals(1, games.size());
         GameData retrievedGame = games.iterator().next();
         assertEquals("My Game", retrievedGame.gameName());
@@ -157,15 +156,15 @@ class SQLDataAccessTest {
         db.addAuth(auth2);
         var game = new GameData(1234, null, null, "Empty Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().list();
+        var games = (Collection<GameData>) db.listGames().games();
         assertNotNull(1234);
         db.joinGame(1234, "WHITE", "authToken1");
-        var updatedGames = (Collection<GameData>) db.listGames().list();
+        var updatedGames = (Collection<GameData>) db.listGames().games();
         GameData updatedGame = updatedGames.iterator().next();
         assertEquals("new", updatedGame.whiteUsername());
         assertNull(updatedGame.blackUsername());
         db.joinGame(1234, "BLACK", "authToken2");
-        var finalGames = (Collection<GameData>) db.listGames().list();
+        var finalGames = (Collection<GameData>) db.listGames().games();
         GameData finalGame = finalGames.iterator().next();
         assertEquals("new", finalGame.whiteUsername());
         assertEquals("newer", finalGame.blackUsername());
@@ -182,7 +181,7 @@ class SQLDataAccessTest {
         db.addAuth(auth2);
         var game = new GameData(1234, null, null, "Test Game", null);
         db.addGame(game);
-        var games = (Collection<GameData>) db.listGames().list();
+        var games = (Collection<GameData>) db.listGames().games();
         db.joinGame(1234, "WHITE", "authToken1");
         assertThrows(DataAccessException.class, () -> {
             db.joinGame(1234, "WHITE", "authToken2");

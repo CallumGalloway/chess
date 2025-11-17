@@ -5,7 +5,6 @@ import org.junit.jupiter.api.*;
 import server.Server;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,7 +107,7 @@ public class ServerFacadeTests {
 
         GameList gameList = facade.listGames();
         assertNotNull(gameList);
-        assertEquals(0, gameList.list().size());
+        assertEquals(0, gameList.games().size());
     }
 
     @Test
@@ -119,7 +118,7 @@ public class ServerFacadeTests {
 
         GameList gameList = facade.listGames();
         assertNotNull(gameList);
-        assertEquals(2, gameList.list().size());
+        assertEquals(2, gameList.games().size());
     }
 
     @Test
@@ -130,8 +129,8 @@ public class ServerFacadeTests {
         assertTrue(result.startsWith("game created: My New Game, with ID: "));
 
         GameList gameList = facade.listGames();
-        assertEquals(1, gameList.list().size());
-        assertEquals("My New Game", gameList.list().get(0).gameName());
+        assertEquals(1, gameList.games().size());
+        assertEquals("My New Game", gameList.games().get(0).gameName());
     }
 
     @Test
@@ -155,7 +154,7 @@ public class ServerFacadeTests {
         facade.register(new String[]{"new", "new", "new@new.com"});
         facade.createGame(new String[]{"GameToJoin"});
         GameList games = facade.listGames();
-        int gameID = games.list().get(0).gameID();
+        int gameID = games.games().get(0).gameID();
         facade.logout();
 
         ServerFacade facade2 = new ServerFacade(serverUrl);
@@ -171,7 +170,7 @@ public class ServerFacadeTests {
         facade.register(new String[]{"new", "new", "new@new.com"});
         facade.createGame(new String[]{"GameToObserve"});
         GameList games = facade.listGames();
-        int gameID = games.list().get(0).gameID();
+        int gameID = games.games().get(0).gameID();
         facade.logout();
 
         ServerFacade facade2 = new ServerFacade(serverUrl);
@@ -198,7 +197,7 @@ public class ServerFacadeTests {
     public void joinGameFailureSlotTaken() throws Exception {
         facade.register(new String[]{"whitenew", "new", "new@new.com"});
         facade.createGame(new String[]{"Full Game"});
-        int gameID = facade.listGames().list().get(0).gameID();
+        int gameID = facade.listGames().games().get(0).gameID();
         facade.joinGame(new String[]{String.valueOf(gameID), "WHITE"});
         facade.logout();
 

@@ -7,9 +7,7 @@ import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 import datamodel.*;
 
@@ -107,7 +105,7 @@ public class ServerFacade {
     }
 
     public GameData findGame(int id, GameList gameList) throws Exception {
-        var list = gameList.list();
+        var list = gameList.games();
         GameData gameFound = null;
         if (id > list.size()) {
             for (int game = 0; game < list.size(); game++) {

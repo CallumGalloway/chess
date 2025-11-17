@@ -5,8 +5,6 @@ import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
@@ -106,8 +104,8 @@ class UserServiceTest {
         db.addGame(new GameData(123, null, null, "testGame", null));
         GameList games = gameService.listGames(authData.authToken());
         assertNotNull(games);
-        assertNotNull(games.list());
-        assertEquals(1, (games.list().size()));
+        assertNotNull(games.games());
+        assertEquals(1, (games.games().size()));
     }
 
     @Test
