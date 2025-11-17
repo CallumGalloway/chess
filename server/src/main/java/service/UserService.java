@@ -48,6 +48,9 @@ public class UserService {
     }
 
     public void logout(String auth) throws Exception {
+        if (auth == null){
+            throw new Exception("unauthorized");
+        }
         if (dataAccess.getAuthUser(auth) != null) {
             dataAccess.delAuth(auth);
         }

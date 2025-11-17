@@ -27,7 +27,7 @@ public class GameService {
 
     public Integer addGame(String name, String auth) throws Exception {
         if (dataAccess.getAuthUser(auth) != null) {
-            if (name != null && name != "") {
+            if (name != null && !name.equals("")) {
                 var gameID = generateGameID();
                 var game = new GameData(gameID, null, null, name, new ChessGame());
                 dataAccess.addGame(game);

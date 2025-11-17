@@ -57,6 +57,7 @@ public class ServerFacade {
         var response = sendRequest(request);
         handleResponse(response,null);
         state = State.SIGNED_OUT;
+        authToken = null;
         return "logged out!";
     }
 
@@ -70,10 +71,12 @@ public class ServerFacade {
     public String createGame(String[] params) throws Exception {
         if (params.length >= 1) {
             var gameName = new GameName(params[0]);
-            var request = buildRequest("POST", "/game", gameName, "authorization", authToken);
-            var response = sendRequest(request);
-            var game = handleResponse(response,GameData.class);
-            return "game created: " + params[0] + ", with ID: " + game.gameID();
+            if (!gameName.equals("")) {
+                var request = buildRequest("POST", "/game", gameName, "authorization", authToken);
+                var response = sendRequest(request);
+                var game = handleResponse(response, GameData.class);
+                return "game created: " + params[0] + ", with ID: " + game.gameID();
+            } else throw new Exception("Bad Request");
         }
         throw new Exception("Expected: <NAME>\n");
     }
