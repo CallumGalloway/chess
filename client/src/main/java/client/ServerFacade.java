@@ -130,6 +130,12 @@ public class ServerFacade {
         return "";
     }
 
+    public void clear() throws Exception {
+        var request = buildRequest("DELETE", "/db", null, null, null);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body, String header, String value) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
