@@ -5,13 +5,16 @@ import dataaccess.*;
 import datamodel.*;
 import io.javalin.*;
 import io.javalin.http.Context;
+import server.websocket.WebSocketHandler;
 import service.*;
+import websocket.*;
 
 import java.util.HashMap;
 
 public class Server {
 
     private final Javalin javalin;
+    private final WebSocketHandler webSocketHandler;
     private UserService userService;
     private GameService gameService;
 
@@ -28,6 +31,8 @@ public class Server {
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);
 
+        webSocketHandler = new WebSocketHandler();
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
@@ -38,6 +43,11 @@ public class Server {
         javalin.get("/game",ctx -> listGames(ctx));
         javalin.post("/game",ctx-> createGame(ctx));
         javalin.put("/game",ctx -> joinGame(ctx));
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
+        });
     }
 
     private void register(Context ctx) {
