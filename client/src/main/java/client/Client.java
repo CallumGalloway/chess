@@ -2,6 +2,8 @@ package client;
 
 import client.websocket.*;
 import datamodel.*;
+import server.ServerFacade;
+import server.State;
 import ui.*;
 import websocket.messages.*;
 
@@ -18,12 +20,18 @@ public class Client implements NotificationHandler {
     private final WebSocketFacade ws;
     private State state;
     private PrintStream out;
+    private GameData currentGame;
+    private JoinData joinData;
+    private String myColor;
 
     public Client(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
         ws = new WebSocketFacade(serverUrl, this);
         state = server.state;
         out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        currentGame = null;
+        joinData = null;
+        myColor = null;
     }
 
     public void repl(){
@@ -42,6 +50,9 @@ public class Client implements NotificationHandler {
                     if (result instanceof String) {
                         if (result.toString().contains("Error")) {
                             displayError(result.toString());
+                        } else if (result.toString().contains("LEAVE")) {
+                            currentGame = null;
+                            joinData = null;
                         } else {
                             out.print(SET_TEXT_COLOR_ORANGE + result + "\n");
                             if (result.toString().contains("logged")) {
@@ -53,7 +64,9 @@ public class Client implements NotificationHandler {
                     } else if (result instanceof GameList) {
                         displayGameList((GameList) result);
                     } else if (result instanceof JoinData) {
-                        displayGame(out,(JoinData) result);
+                        var joinData = (JoinData) result;
+                        displayGame(out, joinData, currentGame);
+                        myColor = joinData.playerColor();
                     }
                 }
             } catch (Exception ex) {
@@ -67,7 +80,7 @@ public class Client implements NotificationHandler {
         switch (notification.getServerMessageType()) {
             case LOAD_GAME -> {
                 ServerLoadGame game = (ServerLoadGame) notification;
-                BoardDisplay.printCurrentBoard(out, game.getColor(), game.getGameData().game());
+                BoardDisplay.printCurrentBoard(out, myColor, game.getGameData().game());
                 displayPrompt();
             }
             case ERROR -> {
@@ -151,6 +164,8 @@ public class Client implements NotificationHandler {
                     if (state == State.SIGNED_IN) {
                         var joinData = server.joinGame(params);
                         ws.startWebSocket(server.authToken, joinData.gameID());
+                        this.currentGame = server.findGame(joinData.gameID(), server.listGames());
+                        this.joinData = joinData;
                         yield joinData;
                     } else {
                         yield "You must be logged in to do that!";
@@ -161,15 +176,17 @@ public class Client implements NotificationHandler {
                     if (state == State.SIGNED_IN) {
                         var joinData = server.observeGame(params);
                         ws.startWebSocket(server.authToken, joinData.gameID());
+                        this.currentGame = server.findGame(joinData.gameID(), server.listGames());
+                        this.joinData = joinData;
                         yield joinData;
                     } else {
                         yield "You must be logged in to do that!";
                     }
                 }
                 //in-game
-                case "move" -> state == State.IN_GAME ? ws.makeMove(params) : "You must be playing a game to do that!";
+                case "move" -> state == State.IN_GAME ? ws.makeMove(server.authToken, currentGame.gameID(), params) : "You must be playing a game to do that!";
                 case "resign" -> state == State.IN_GAME ? ws.resign() : "You must be playing a game to do that!";
-                case "highlight" -> state == State.IN_GAME ? ws.highlight(params) : "You must be playing a game to do that!";
+//                case "highlight" -> state == State.IN_GAME ? highlight(out, joinData, currentGame, params) : "You must be playing a game to do that!";
                 //observing
                 case "leave" -> {
                     //state == State.IN_GAME || state == State.OBSERVING ? ws.leave() : "You must be in a game to do that!";
@@ -177,12 +194,13 @@ public class Client implements NotificationHandler {
                         ws.leave(server.authToken, server.gameID);
                         server.gameID = null;
                         server.state = State.SIGNED_IN;
+                        myColor = null;
                         yield "You left the game.";
                     } else {
                         yield "You must be in a game to do that!";
                     }
                 }
-                case "redraw" -> state == State.IN_GAME || state == State.OBSERVING ? ws.redraw() : "You must be in a game to do that!";
+                case "redraw" -> state == State.IN_GAME || state == State.OBSERVING ? displayGame(out, this.joinData ,currentGame) : "You must be in a game to do that!";
 
                 default -> displayHelp();
             };
@@ -230,8 +248,14 @@ public class Client implements NotificationHandler {
         }
     }
 
-    private void displayGame(PrintStream out, JoinData joinData) throws Exception {
-        GameData gameData = server.findGame(joinData.gameID(), server.listGames());
+    private String displayGame(PrintStream out, JoinData joinData, GameData gameData) throws Exception {
         BoardDisplay.printCurrentBoard(out, joinData.playerColor(), gameData.game());
+        return "";
     }
+
+//    private String highlight(PrintStream out, JoinData joinData, GameData gameData, String[] target) throws Exception {
+//        ChessPosition piece = null;
+//        BoardDisplay.drawHighlightedBoard(out, joinData.playerColor(), gameData.game(), piece);
+//        return "";
+//    }
 }
