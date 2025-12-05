@@ -16,12 +16,14 @@ public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
     public State state;
-    private String authToken;
+    public String authToken;
+    public Integer gameID;
 
     public ServerFacade(String url) {
         serverUrl = url;
         state = State.SIGNED_OUT;
         authToken = null;
+        gameID = null;
     }
 
     public String login(String[] params) throws Exception {
@@ -87,8 +89,10 @@ public class ServerFacade {
             var gameList = listGames();
             GameData gameToJoin = findGame(id, gameList);
 
+            gameID = gameToJoin.gameID();
+
             JoinData joinData = null;
-            if (color.equals("WHITE") || color.equals("BLACK")) {
+            if (color.toUpperCase().equals("WHITE") || color.toUpperCase().equals("BLACK")) {
                 joinData = new JoinData(color,gameToJoin.gameID());
             } else {
                 return new JoinData("Observer",gameToJoin.gameID());
@@ -98,6 +102,7 @@ public class ServerFacade {
             var response = sendRequest(request);
             handleResponse(response, null);
 
+            state = State.IN_GAME;
             return joinData;
         }
         throw new Exception("Expected: <NUMBER> <WHITE/BLACK>");
@@ -124,6 +129,7 @@ public class ServerFacade {
     public JoinData observeGame(String[] params) throws Exception {
         String[] observerParams = Arrays.copyOf(params, params.length +1);
         observerParams[observerParams.length - 1] = "OBSERVER";
+        state = State.OBSERVING;
         return joinGame(observerParams);
     }
 

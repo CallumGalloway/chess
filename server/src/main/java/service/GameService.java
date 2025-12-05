@@ -45,7 +45,7 @@ public class GameService {
         if (dataAccess.getAuthUser(auth) != null) {
             var gameID = joinData.gameID();
             var color = joinData.playerColor();
-            if (gameID != null && color != null && (color.equals("WHITE") || color.equals("BLACK"))) {
+            if (gameID != null && color != null && (color.toUpperCase().equals("WHITE") || color.toUpperCase().equals("BLACK"))) {
                 dataAccess.joinGame(gameID, color, auth);
             } else {
                 throw new Exception("Bad Request");

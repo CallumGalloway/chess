@@ -7,7 +7,8 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import server.websocket.WebSocketHandler;
 import service.*;
-import websocket.*;
+import websocket.messages.*;
+import websocket.commands.*;
 
 import java.util.HashMap;
 
