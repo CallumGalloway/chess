@@ -1,6 +1,9 @@
 package server.websocket;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccess;
+import dataaccess.SQLDataAccess;
+import datamodel.*;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
@@ -12,10 +15,24 @@ import websocket.commands.*;
 import websocket.messages.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private final DataAccess dataAccess;
+
+    public WebSocketHandler(){
+        try {
+            dataAccess = new SQLDataAccess();
+            System.out.println("SQL connection successful");
+        } catch (Exception ex) {
+//            dataAccess = new MemoryDataAccess();
+//            System.out.println("SQL connection failed, using memory");
+            throw new RuntimeException(String.format("SQL connection in WebSocket failed, %s",ex));
+        }
+    }
+
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -28,7 +45,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
-                case CONNECT -> connect(ctx.session);
+                case CONNECT -> connect(command.getGameID(), ctx.session);
                 case MAKE_MOVE -> make_move(ctx.session);
                 case LEAVE -> leave(ctx.session, command.getGameID());
                 case RESIGN -> resign(ctx.session);
@@ -43,11 +60,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    private void connect(Session session) throws IOException {
-        connections.add(session);
-        // var content = String.format("Joined Game: %s", gameName);
-        var message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-        connections.broadcast(session, message);
+    private void connect(Integer gameID, Session session) throws IOException {
+        try {
+            connections.add(gameID, session);
+            var message = new ServerLoadGame(ServerMessage.ServerMessageType.LOAD_GAME, dataAccess.getGameFromID(gameID));
+            connections.broadcast(gameID, null, message);
+        } catch (Exception ex) {
+            throw new IOException(ex.getMessage());
+        }
     }
 
     private void make_move(Session session) throws IOException {
@@ -56,8 +76,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void leave(Session session, Integer gameID) throws IOException {
         var notification = new ServerNotification(ServerMessage.ServerMessageType.NOTIFICATION, "Left game");
-        connections.broadcast(session, notification);
-        //connections.remove(session);
+        connections.broadcast(gameID, session, notification);
     }
 
     private void resign(Session session) throws IOException {

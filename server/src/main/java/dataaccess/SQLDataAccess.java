@@ -156,6 +156,21 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public GameData getGameFromID(Integer gameID) throws DataAccessException {
+        var statement = "SELECT json FROM games WHERE id = ?";
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String json = rs.getString("json");
+                        var serializer = new Gson();
+                        return serializer.fromJson(json, GameData.class);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 

@@ -3,6 +3,8 @@ package client;
 import datamodel.*;
 import org.junit.jupiter.api.*;
 import server.Server;
+import server.ServerFacade;
+import server.State;
 
 import java.util.ArrayList;
 

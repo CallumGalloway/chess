@@ -1,8 +1,10 @@
 package client.websocket;
 
-import client.State;
+import chess.ChessMove;
+import chess.ChessPosition;
+import server.State;
 import com.google.gson.Gson;
-import datamodel.UserData;
+import com.google.gson.JsonParser;
 import websocket.messages.*;
 import websocket.commands.*;
 
@@ -33,7 +35,7 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
+                    ServerMessage notification = setMessageType(message);
                     notificationHandler.notify(notification);
                 }
             });
@@ -66,15 +68,12 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public String redraw() throws Exception {
-        return "";
-    }
-
-    public String highlight(String[] params) {
-        return "";
-    }
-
-    public String makeMove(String[] params) throws Exception {
+    public String makeMove(String auth, Integer gameID, String[] params) throws Exception {
+        ChessPosition startPos = toPosition(params[0]);
+        ChessPosition endPos = toPosition(params[1]);
+        ChessMove move = posToMove(startPos, endPos);
+        var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, auth, gameID, move);
+        this.session.getBasicRemote().sendText(new Gson().toJson(command));
         return "";
     }
 
@@ -86,6 +85,50 @@ public class WebSocketFacade extends Endpoint {
         var command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, auth, gameID);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
         endWebSocket();
-        return "";
+        return "LEAVE";
+    }
+
+    public ServerMessage setMessageType(String jsonString) {
+        var jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+        var type = jsonObject.get("serverMessageType").getAsString();
+
+        var serializer = new Gson();
+
+        switch (type) {
+            case "LOAD_GAME" -> {
+                return serializer.fromJson(jsonString, ServerLoadGame.class);
+            }
+            case "NOTIFICATION" -> {
+                return serializer.fromJson(jsonString, ServerNotification.class);
+            }
+            case "ERROR" -> {
+                return serializer.fromJson(jsonString, ServerNotification.class);
+            }
+            default -> {
+                return serializer.fromJson(jsonString, ServerMessage.class);
+            }
+        }
+    }
+
+    public ChessPosition toPosition(String target) {
+        if (target.length() == 2) {
+            char colChar = target.toLowerCase().charAt(0);
+            char rowChar = target.charAt(1);
+
+            int col = colChar - 'a' + 1;
+            int row = rowChar - '1' + 1;
+
+            if (col >= 1 && col <= 8 && row >= 1 && row <= 8) {
+                return new ChessPosition(row, col);
+            }
+        }
+        return null; // Return null if invalid
+    }
+
+    public ChessMove posToMove(ChessPosition startPos, ChessPosition endPos) {
+            if (startPos != null && endPos != null) {
+            return new ChessMove(startPos, endPos, null);
+        }
+        return null;
     }
 }

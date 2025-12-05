@@ -1,6 +1,8 @@
 package ui;
 
 import chess.*;
+import datamodel.GameData;
+import datamodel.JoinData;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -132,6 +134,8 @@ public class BoardDisplay {
         return newBoard;
     }
 
-    //public static void drawHighlightedBoard(PrintStream out, ?)
+    public static void drawHighlightedBoard(PrintStream out, String color, ChessGame game, ChessPosition target) {
+
+    }
 
 }

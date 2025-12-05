@@ -4,19 +4,14 @@ import datamodel.GameData;
 
 public class ServerLoadGame extends ServerMessage {
 
-    private GameData gameData;
+    private GameData game;
     private String color;
-    public ServerLoadGame(ServerMessageType type, GameData gameData, String color) {
+    public ServerLoadGame(ServerMessageType type, GameData game) {
         super(type);
-        this.gameData = gameData;
-        this.color = color;
+        this.game = game;
     }
 
     public GameData getGameData() {
-        return gameData;
-    }
-
-    public String getColor() {
-        return color;
+        return game;
     }
 }

@@ -56,6 +56,10 @@ public class GameService {
         }
     }
 
+    public GameData getGameData(Integer gameID) throws Exception {
+        return dataAccess.getGameFromID(gameID);
+    }
+
     private Integer generateGameID() {
         return Math.abs(UUID.randomUUID().toString().hashCode());
     }
