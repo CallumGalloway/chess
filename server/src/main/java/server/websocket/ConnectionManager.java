@@ -12,7 +12,7 @@ public class ConnectionManager {
     public final ConcurrentHashMap<Integer, ArrayList<Session>> connections = new ConcurrentHashMap<>();
 
     public void add(Integer gameID, Session session) {
-        if (!connections.contains(gameID)) {
+        if (!connections.containsKey(gameID)) {
             connections.put(gameID, new ArrayList<>());
         }
         var sessionList = connections.get(gameID);
@@ -28,6 +28,14 @@ public class ConnectionManager {
             throw new Exception("Error: session not found for removal");
         }
 
+    }
+
+    public void send(Session targetSession, ServerMessage notification) throws IOException {
+        var serializer = new Gson();
+        String msg = serializer.toJson(notification);
+        if (targetSession.isOpen()) {
+            targetSession.getRemote().sendString(msg);
+        }
     }
 
     public void broadcast(Integer gameID, Session excludeSession, ServerMessage notification) throws IOException {

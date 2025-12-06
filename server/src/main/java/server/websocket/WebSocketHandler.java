@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.*;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.SQLDataAccess;
@@ -45,8 +46,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command.getGameID(), ctx.session);
-                case MAKE_MOVE -> make_move(ctx.session);
+                case CONNECT -> connect(command.getAuthToken(), command.getGameID(), ctx.session);
+                case MAKE_MOVE -> {
+                    command = (MakeMoveCommand) command;
+                    make_move(command.getAuthToken(), ((MakeMoveCommand) command).getMove(), ctx.session);
+                }
                 case LEAVE -> leave(ctx.session, command.getGameID());
                 case RESIGN -> resign(ctx.session);
             }
@@ -60,27 +64,49 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    private void connect(Integer gameID, Session session) throws IOException {
+    private void connect(String authToken, Integer gameID, Session session) throws IOException {
         try {
-            connections.add(gameID, session);
-            var message = new ServerLoadGame(ServerMessage.ServerMessageType.LOAD_GAME, dataAccess.getGameFromID(gameID));
-            connections.broadcast(gameID, null, message);
+            if (dataAccess.getAuthUser(authToken) != null) {
+                if (dataAccess.getGameFromID(gameID) != null) {
+                    connections.add(gameID, session);
+                    var message = new ServerLoadGame(ServerMessage.ServerMessageType.LOAD_GAME, dataAccess.getGameFromID(gameID));
+                    connections.send(session, message);
+                    connections.broadcast(gameID, session, new ServerNotification("Player joined"));
+                } else {
+                    var error = new ServerError("Game does not exist!");
+                    connections.send(session, error);
+                }
+            } else {
+                var error = new ServerError("unauthorized");
+                connections.send(session, error);
+            }
+
         } catch (Exception ex) {
             throw new IOException(ex.getMessage());
         }
     }
 
-    private void make_move(Session session) throws IOException {
+    private void make_move(String authToken, ChessMove move, Session session) throws IOException {
 
     }
 
     private void leave(Session session, Integer gameID) throws IOException {
-        var notification = new ServerNotification(ServerMessage.ServerMessageType.NOTIFICATION, "Left game");
+        var notification = new ServerNotification("Left game");
         connections.broadcast(gameID, session, notification);
     }
 
     private void resign(Session session) throws IOException {
 
+    }
+
+    public void notifyOthers(Session session, String message, Integer gameID) throws IOException {
+        var notification = new ServerNotification(message);
+        connections.broadcast(gameID, session, notification);
+    }
+
+    public void notifyAll(Session session, String message, Integer gameID) throws IOException {
+        var notification = new ServerNotification(message);
+        connections.broadcast(gameID, null, notification);
     }
 
 }
