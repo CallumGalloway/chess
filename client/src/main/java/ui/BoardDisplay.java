@@ -31,6 +31,7 @@ public class BoardDisplay {
     public static void printCurrentBoard(PrintStream out, String color, ChessGame game){
         List<String> rows = Arrays.asList(" 8\u2003"," 7\u2003"," 6\u2003"," 5\u2003"," 4\u2003"," 3\u2003"," 2\u2003"," 1\u2003");
         List<String> cols = Arrays.asList(" a\u2003"," b\u2003"," c\u2003"," d\u2003"," e\u2003"," f\u2003"," g\u2003"," h\u2003");
+        out.print("\n");
         out.print(SET_BG_COLOR_BIRCH);
         out.print(SET_TEXT_BOLD);
         out.print(SET_TEXT_COLOR_BLACK);
