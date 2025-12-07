@@ -225,8 +225,13 @@ public class Server {
 
         } catch (DataAccessException ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
-            ctx.status(500);
-            ctx.result(msg);
+            if (msg.contains("already taken")) {
+                ctx.status(403);
+                ctx.result(msg);
+            } else {
+                ctx.status(500);
+                ctx.result(msg);
+            }
         } catch (Exception ex) {
             String msg = String.format("{ \"message\": \"Error: %s\" }", ex.getMessage());
             if (msg.contains("unauthorized")) {
