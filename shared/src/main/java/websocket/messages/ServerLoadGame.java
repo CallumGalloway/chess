@@ -5,9 +5,9 @@ import datamodel.GameData;
 public class ServerLoadGame extends ServerMessage {
 
     private GameData game;
-    private String color;
-    public ServerLoadGame(ServerMessageType type, GameData game) {
-        super(type);
+
+    public ServerLoadGame(GameData game) {
+        super(ServerMessageType.LOAD_GAME);
         this.game = game;
     }
 
