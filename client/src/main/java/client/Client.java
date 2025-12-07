@@ -240,7 +240,10 @@ public class Client implements NotificationHandler {
         var games = gameList.games();
         if (games.size() != 0) {
             for (int game = 0; game < games.size(); game++) {
-                String print = "Game #" + (game + 1) + " " + games.get(game).gameName() + "\n";
+                String print = "Game #" + (game + 1) + " " + games.get(game).gameName() +
+                        SET_TEXT_COLOR_WHITE + " White player: " + games.get(game).whiteUsername() +
+                        SET_TEXT_COLOR_SILVER + " Black player: " + games.get(game).blackUsername() +
+                        "\n";
                 out.print(SET_TEXT_COLOR_TURQUOISE + print);
             }
         } else {

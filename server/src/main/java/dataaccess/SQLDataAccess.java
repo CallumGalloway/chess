@@ -121,24 +121,26 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void joinGame(Integer gameID, String color, String auth) throws DataAccessException {
-        GameData game = null;
-        try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM games WHERE id=?";
-            try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setInt(1, gameID);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        game = readGame(rs);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            throw new DataAccessException(String.format("Unable to read data: %s", ex.getMessage()));
-        }
+        var game = getGameFromID(gameID);
         String user = getAuthUser(auth);
 
         String statement = "UPDATE games SET json = ? WHERE id = ?";
-        if (color.equals("WHITE") && game.whiteUsername() == null){
+        if (color == null) {
+            if (user.equals(game.whiteUsername())) {
+                game = getGameFromID(gameID);
+                GameData updated = new GameData(gameID, null, game.blackUsername(), game.gameName(), game.game());
+                var serializer = new Gson();
+                String serialized = serializer.toJson(updated);
+                executeUpdate(statement, serialized, gameID);
+            }
+            if (user.equals(game.blackUsername())) {
+                game = getGameFromID(gameID);
+                GameData updated = new GameData(gameID, game.whiteUsername(), null, game.gameName(), game.game());
+                var serializer = new Gson();
+                String serialized = serializer.toJson(updated);
+                executeUpdate(statement, serialized, gameID);
+            }
+        } else if (color.equals("WHITE") && game.whiteUsername() == null){
             GameData updated = new GameData(gameID, user, game.blackUsername(), game.gameName(), game.game());
             var serializer = new Gson();
             String serialized = serializer.toJson(updated);

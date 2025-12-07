@@ -56,7 +56,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     make_move(moveCommand.getAuthToken(), moveCommand.getGameID(), moveCommand.getMove(), ctx.session);
                 }
                 case LEAVE -> {
-                    leave(ctx.session, command.getGameID());
+                    leave(command.getAuthToken(), command.getGameID(), ctx.session);
                 }
                 case RESIGN -> {
                     resign(ctx.session);
@@ -141,16 +141,42 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 var error = new ServerError("unauthorized");
                 connections.send(session, error);
             }
-
         } catch (Exception ex) {
             throw new IOException(ex.getMessage());
         }
     }
 
-    private void leave(Session session, Integer gameID) throws IOException {
-        var notification = new ServerNotification("A player left the game.");
-        connections.broadcast(gameID, session, notification);
-        session.close();
+    private void leave(String authToken, Integer gameID, Session session) throws IOException {
+        try {
+            var user = dataAccess.getAuthUser(authToken);
+            if (user != null) {
+                var gameData = dataAccess.getGameFromID(gameID);
+                if (gameData != null) {
+                    var blackPlayer = gameData.blackUsername();
+                    var whitePlayer = gameData.whiteUsername();
+                    if (user == whitePlayer) {
+                        var notification = new ServerNotification(String.format("White player %s left the game.", user));
+                        connections.broadcast(gameID, session, notification);
+                    } else if (user == blackPlayer) {
+                        var notification = new ServerNotification(String.format("Black player %s left the game.", user));
+                        connections.broadcast(gameID, session, notification);
+                    } else {
+                        var notification = new ServerNotification(String.format("%s stopped observing the game.", user));
+                        connections.broadcast(gameID, session, notification);
+                    }
+                    dataAccess.joinGame(gameID, null, authToken);
+                    connections.remove(gameID, session);
+                } else {
+                var error = new ServerError("Game does not exist!");
+                connections.send(session, error);
+                }
+            } else {
+                var error = new ServerError("unauthorized");
+                connections.send(session, error);
+            }
+        } catch (Exception ex) {
+            throw new IOException(ex.getMessage());
+        }
     }
 
     private void resign(Session session) throws IOException {
