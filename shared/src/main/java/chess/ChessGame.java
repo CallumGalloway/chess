@@ -13,6 +13,7 @@ import java.util.Objects;
 public class ChessGame {
 
     private TeamColor teamTurn = TeamColor.WHITE;
+    private boolean finished = false;
     public ChessBoard board = new ChessBoard();
 
     public ChessGame() {
@@ -33,6 +34,14 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         this.teamTurn = team;
+    }
+
+    public void setGameFinished(boolean state) {
+        this.finished = state;
+    }
+
+    public boolean checkGameFinished() {
+        return this.finished;
     }
 
     @Override
@@ -165,7 +174,10 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         // must start in check
         if (!(isInCheck(teamColor))) return false;
-        if (getTeamMoves(teamColor).size() == 0) return true;
+        if (getTeamMoves(teamColor).size() == 0) {
+            setGameFinished(true);
+            return true;
+        }
         else return false;
     }
 
@@ -180,7 +192,10 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         // must not be in check
         if (isInCheck(teamColor)) return false;
-        if (getTeamMoves(teamColor).size() == 0) return true;
+        if (getTeamMoves(teamColor).size() == 0) {
+            setGameFinished(true);
+            return true;
+        }
         else return false;
     }
 
