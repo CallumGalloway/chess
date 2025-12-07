@@ -59,7 +59,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     leave(command.getAuthToken(), command.getGameID(), ctx.session);
                 }
                 case RESIGN -> {
-                    resign(ctx.session);
+                    resign(command.getAuthToken(), command.getGameID(), ctx.session);
                 }
             }
         } catch (IOException ex) {
@@ -101,36 +101,41 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     var gameData = dataAccess.getGameFromID(gameID);
                     var turn = gameData.game().getTeamTurn();
                     if (!gameData.game().isInCheckmate(turn) && !gameData.game().isInStalemate(turn)) {
-                        var user = dataAccess.getAuthUser(authToken);
-                        var blackPlayer = gameData.blackUsername();
-                        var whitePlayer = gameData.whiteUsername();
-                        if ((turn == ChessGame.TeamColor.WHITE && user.equals(whitePlayer)) || (turn == ChessGame.TeamColor.BLACK && user.equals(blackPlayer))) {
-                            var pieceColor = gameData.game().getBoard().getPiece(move.getStartPosition()).getTeamColor();
-                            if (pieceColor == turn) {
-                                var newGame = gameData.game().copyGame();
-                                try {
-                                    newGame.makeMove(move);
-                                    var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), newGame);
-                                    dataAccess.addGame(newGameData);
-                                    var load = new ServerLoadGame(newGameData);
-                                    connections.broadcast(newGameData.gameID(), null, load);
-                                    var msg = new ServerNotification(String.format("%s made their move", user));
-                                    connections.broadcast(gameID, session, msg);
-                                } catch (InvalidMoveException ex) {
-                                    var error = new ServerError("Invalid move.");
+                        if (!gameData.game().checkGameFinished()) {
+                            var user = dataAccess.getAuthUser(authToken);
+                            var blackPlayer = gameData.blackUsername();
+                            var whitePlayer = gameData.whiteUsername();
+                            if ((turn == ChessGame.TeamColor.WHITE && user.equals(whitePlayer)) || (turn == ChessGame.TeamColor.BLACK && user.equals(blackPlayer))) {
+                                var pieceColor = gameData.game().getBoard().getPiece(move.getStartPosition()).getTeamColor();
+                                if (pieceColor == turn) {
+                                    var newGame = gameData.game().copyGame();
+                                    try {
+                                        newGame.makeMove(move);
+                                        var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), newGame);
+                                        dataAccess.addGame(newGameData);
+                                        var load = new ServerLoadGame(newGameData);
+                                        connections.broadcast(newGameData.gameID(), null, load);
+                                        var msg = new ServerNotification(String.format("%s made their move", user));
+                                        connections.broadcast(gameID, session, msg);
+                                    } catch (InvalidMoveException ex) {
+                                        var error = new ServerError("Invalid move.");
+                                        connections.send(session, error);
+                                    }
+                                } else {
+                                    var error = new ServerError("That is not your piece.");
                                     connections.send(session, error);
                                 }
                             } else {
-                                var error = new ServerError("That is not your piece.");
+                                var error = new ServerError("It is not your turn.");
                                 connections.send(session, error);
                             }
                         } else {
-                            var error = new ServerError("It is not your turn.");
+                            var message = gameData.game().isInCheckmate(turn) ? "You are in checkmate. " : "You are in stalemate. ";
+                            var error = new ServerError(message + "The game is over.");
                             connections.send(session, error);
                         }
                     } else {
-                        var message = gameData.game().isInCheckmate(turn) ? "You are in checkmate. " : "You are in stalemate. ";
-                        var error = new ServerError(message + "The game is over.");
+                        var error = new ServerError("The game is over.");
                         connections.send(session, error);
                     }
                 } else {
@@ -154,10 +159,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 if (gameData != null) {
                     var blackPlayer = gameData.blackUsername();
                     var whitePlayer = gameData.whiteUsername();
-                    if (user == whitePlayer) {
+                    if (user.equals(whitePlayer)) {
                         var notification = new ServerNotification(String.format("White player %s left the game.", user));
                         connections.broadcast(gameID, session, notification);
-                    } else if (user == blackPlayer) {
+                    } else if (user.equals(blackPlayer)) {
                         var notification = new ServerNotification(String.format("Black player %s left the game.", user));
                         connections.broadcast(gameID, session, notification);
                     } else {
@@ -179,8 +184,46 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void resign(Session session) throws IOException {
-
+    private void resign(String authToken, Integer gameID, Session session) throws IOException {
+        try {
+        var user = dataAccess.getAuthUser(authToken);
+            if (user != null) {
+                var gameData = dataAccess.getGameFromID(gameID);
+                if (gameData != null) {
+                    if (!gameData.game().checkGameFinished()) {
+                        var blackPlayer = gameData.blackUsername();
+                        var whitePlayer = gameData.whiteUsername();
+                        if (user.equals(whitePlayer)) {
+                            var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                            newGameData.game().setGameFinished(true);
+                            dataAccess.addGame(newGameData);
+                            var notification = new ServerNotification(String.format("White player %s resigned.", user));
+                            connections.broadcast(gameID, null, notification);
+                        } else if (user.equals(blackPlayer)) {
+                            var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                            newGameData.game().setGameFinished(true);
+                            dataAccess.addGame(newGameData);
+                            var notification = new ServerNotification(String.format("Black player %s resigned.", user));
+                            connections.broadcast(gameID, null, notification);
+                        } else {
+                            var error = new ServerError("non-players cannot resign.");
+                            connections.send(session, error);
+                        }
+                    } else {
+                        var error = new ServerError("Game is already over!");
+                        connections.send(session, error);
+                    }
+                } else {
+                    var error = new ServerError("Game does not exist!");
+                    connections.send(session, error);
+                }
+            } else {
+                var error = new ServerError("unauthorized");
+                connections.send(session, error);
+            }
+        } catch (Exception ex) {
+            throw new IOException(ex.getMessage());
+        }
     }
 
     public void notifyOthers(Session session, String message, Integer gameID) throws IOException {

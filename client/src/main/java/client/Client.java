@@ -185,7 +185,7 @@ public class Client implements NotificationHandler {
                 }
                 //in-game
                 case "move" -> state == State.IN_GAME ? ws.makeMove(server.authToken, currentGame.gameID(), params) : "You must be playing a game to do that!";
-                case "resign" -> state == State.IN_GAME ? ws.resign() : "You must be playing a game to do that!";
+                case "resign" -> state == State.IN_GAME ? resignHandler(out, server.authToken, currentGame.gameID()) : "You must be playing a game to do that!";
 //                case "highlight" -> state == State.IN_GAME ? highlight(out, joinData, currentGame, params) : "You must be playing a game to do that!";
                 //observing
                 case "leave" -> {
@@ -261,4 +261,16 @@ public class Client implements NotificationHandler {
 //        BoardDisplay.drawHighlightedBoard(out, joinData.playerColor(), gameData.game(), piece);
 //        return "";
 //    }
+
+    private String resignHandler(PrintStream out, String auth, Integer gameID) throws Exception {
+        out.print(SET_TEXT_COLOR_RED + "Are you sure you want to resign? (yes/no) >>> ");
+        Scanner scanner = new Scanner(System.in);
+        String line = scanner.nextLine();
+        if (line.toLowerCase().equals("yes")||line.toLowerCase().equals("y")) {
+            ws.resign(auth, gameID);
+        } else {
+            out.print(SET_TEXT_COLOR_RED + "resign cancelled");
+        }
+        return "";
+    }
 }
