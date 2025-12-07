@@ -16,7 +16,6 @@ import websocket.commands.*;
 import websocket.messages.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
@@ -53,7 +52,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 }
                 case MAKE_MOVE -> {
                     MakeMoveCommand moveCommand = serializer.fromJson(ctx.message(), MakeMoveCommand.class);
-                    make_move(moveCommand.getAuthToken(), moveCommand.getGameID(), moveCommand.getMove(), ctx.session);
+                    makeMove(moveCommand.getAuthToken(), moveCommand.getGameID(), moveCommand.getMove(), ctx.session);
                 }
                 case LEAVE -> {
                     leave(command.getAuthToken(), command.getGameID(), ctx.session);
@@ -96,7 +95,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void make_move(String authToken, Integer gameID, ChessMove move, Session session) throws IOException {
+    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws IOException {
         try {
             if (dataAccess.getAuthUser(authToken) != null) {
                 if (dataAccess.getGameFromID(gameID) != null) {
