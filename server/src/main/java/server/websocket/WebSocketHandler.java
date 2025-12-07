@@ -37,7 +37,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("Websocket connected");
+        System.out.println("WebSocket connected");
         ctx.enableAutomaticPings();
     }
 
@@ -69,17 +69,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed");
+        System.out.println("WebSocket closed");
     }
 
     private void connect(String authToken, Integer gameID, Session session) throws IOException {
         try {
-            if (dataAccess.getAuthUser(authToken) != null) {
-                if (dataAccess.getGameFromID(gameID) != null) {
+            var user = dataAccess.getAuthUser(authToken);
+            if (user != null) {
+                var game = dataAccess.getGameFromID(gameID);
+                if (game != null) {
                     connections.add(gameID, session);
-                    var message = new ServerLoadGame(dataAccess.getGameFromID(gameID));
+                    var message = new ServerLoadGame(game);
                     connections.send(session, message);
-                    connections.broadcast(gameID, session, new ServerNotification("Player joined"));
+                    connections.broadcast(gameID, session, new ServerNotification(String.format("Player %s joined the game.", user)));
                 } else {
                     var error = new ServerError("Game does not exist!");
                     connections.send(session, error);
@@ -115,7 +117,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                                         dataAccess.addGame(newGameData);
                                         var load = new ServerLoadGame(newGameData);
                                         connections.broadcast(newGameData.gameID(), null, load);
-                                        var msg = new ServerNotification(String.format("%s made their move", user));
+                                        var msg = new ServerNotification(String.format("%s made their move %s to %s.", user, move.getStartPosition().toString(), move.getEndPosition().toString()));
                                         connections.broadcast(gameID, session, msg);
                                     } catch (InvalidMoveException ex) {
                                         var error = new ServerError("Invalid move.");
