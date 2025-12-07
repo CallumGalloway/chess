@@ -39,7 +39,7 @@ public class ChessGame {
     public String toString() {
         return "ChessGame{" +
                 "teamTurn=" + teamTurn +
-                ", board=" + board +
+//                ", board=" + board +
                 '}';
     }
 

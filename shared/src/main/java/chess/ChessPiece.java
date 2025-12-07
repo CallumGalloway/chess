@@ -14,7 +14,7 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
-    private ChessBoard board;
+    private transient ChessBoard board;
     private ChessPosition myPosition;
     private int row;
     private int col;
