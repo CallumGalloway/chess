@@ -114,9 +114,8 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void addGame(GameData game) throws DataAccessException {
-        var statement = "INSERT INTO games (id, name, json) VALUES (?, ?, ?)";
-        var serializer = new Gson();
-        String serialized = serializer.toJson(game);
+        var statement = "INSERT INTO games (id, name, json) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE json = VALUES(json)";
+        String serialized = new Gson().toJson(game);
         executeUpdate(statement, game.gameID(), game.gameName(), serialized);
     }
 
