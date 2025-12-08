@@ -1,6 +1,7 @@
 package client.websocket;
 
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import server.State;
 import com.google.gson.Gson;
@@ -69,15 +70,19 @@ public class WebSocketFacade extends Endpoint {
     }
 
     public String makeMove(String auth, Integer gameID, String[] params) throws Exception {
-        if (params.length >1) {
+        if (params.length > 1) {
             ChessPosition startPos = toPosition(params[0]);
             ChessPosition endPos = toPosition(params[1]);
+            if (params.length > 2) {
+                String promotion = params[2];
+            }
             ChessMove move = posToMove(startPos, endPos);
             var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, auth, gameID, move);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
             return "";
         } else {
-            throw new Exception("Expected: <START> <END>");
+            throw new Exception("Expected: <START> <END> <PROMOTION> " +
+                    "(include promotion only if pawn is moving to end space)");
         }
     }
 

@@ -127,10 +127,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             //check and checkmate messages
+            String oppColor = checkPlayerColor(authToken, gameID) == ChessGame.TeamColor.WHITE ? "Black" : "White";
             try {
                 checkMate(gameID);
             } catch (Exception ex) {
-                var msg = new ServerNotification(ex.getMessage());
+                var msg = new ServerNotification(String.format(("%s player %s "
+                        + ex.getMessage()), oppColor, user));
                 connections.broadcast(gameID, null, msg);
             }
 
@@ -157,6 +159,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             } catch (Exception ex) {
                 var notification = new ServerNotification(String.format("%s stopped observing the game.", user));
                 connections.broadcast(gameID, session, notification);
+                connections.remove(gameID, session);
             }
 
             if (user.equals(whitePlayer)) {
@@ -299,23 +302,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var gameData = dataAccess.getGameFromID(gameID);
         var game = gameData.game();
         if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
-            throw new Exception("White player is in Checkmate.");
+            throw new Exception("is in Checkmate.");
         }
         if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
-            throw new Exception("Black player is in Checkmate.");
+            throw new Exception("is in Checkmate.");
         }
         if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
-            throw new Exception("White player is in Check.");
+            throw new Exception("is in Check.");
         }
         if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
-            throw new Exception("Black player is in Check.");
+            throw new Exception("is in Check.");
         }
     }
 
     private String coordToReadable(ChessPosition position) {
         var string = position.toString();
-        int colIndex = Character.getNumericValue(string.charAt(0));
-        int rowIndex = Character.getNumericValue(string.charAt(1));
+        int rowIndex = Character.getNumericValue(string.charAt(0));
+        int colIndex = Character.getNumericValue(string.charAt(1));
 
         char colChar = (char) ('a' + colIndex - 1);
 
