@@ -3,6 +3,7 @@ package server.websocket;
 import chess.*;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import dataaccess.SQLDataAccess;
 import datamodel.*;
 import io.javalin.websocket.WsCloseContext;
@@ -32,7 +33,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new RuntimeException(String.format("SQL connection in WebSocket failed, %s",ex));
         }
     }
-
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -73,157 +73,128 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void connect(String authToken, Integer gameID, Session session) throws IOException {
         try {
+            // check user, game
+            checkAuth(authToken);
+            checkGame(gameID);
             var user = dataAccess.getAuthUser(authToken);
-            if (user != null) {
-                var game = dataAccess.getGameFromID(gameID);
-                if (game != null) {
-                    connections.add(gameID, session);
-                    var message = new ServerLoadGame(game);
-                    connections.send(session, message);
-                    connections.broadcast(gameID, session, new ServerNotification(String.format("Player %s joined the game.", user)));
-                } else {
-                    var error = new ServerError("Game does not exist!");
-                    connections.send(session, error);
-                }
-            } else {
-                var error = new ServerError("unauthorized");
-                connections.send(session, error);
-            }
+            var game = dataAccess.getGameFromID(gameID);
 
-        } catch (Exception ex) {
+            connections.add(gameID, session);
+            var message = new ServerLoadGame(game);
+            connections.send(session, message);
+            connections.broadcast(gameID, session, new ServerNotification(String.format("Player %s joined the game.", user)));
+
+        } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
+        } catch (Exception ex) {
+            var error = new ServerError(ex.getMessage());
+            connections.send(session, error);
         }
     }
 
     private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws IOException {
         try {
-            if (dataAccess.getAuthUser(authToken) != null) {
-                if (dataAccess.getGameFromID(gameID) != null) {
-                    var gameData = dataAccess.getGameFromID(gameID);
-                    var turn = gameData.game().getTeamTurn();
-                    if (!gameData.game().isInCheckmate(turn) && !gameData.game().isInStalemate(turn)) {
-                        if (!gameData.game().checkGameFinished()) {
-                            var user = dataAccess.getAuthUser(authToken);
-                            var blackPlayer = gameData.blackUsername();
-                            var whitePlayer = gameData.whiteUsername();
-                            if ((turn == ChessGame.TeamColor.WHITE && user.equals(whitePlayer)) || (turn == ChessGame.TeamColor.BLACK && user.equals(blackPlayer))) {
-                                var pieceColor = gameData.game().getBoard().getPiece(move.getStartPosition()).getTeamColor();
-                                if (pieceColor == turn) {
-                                    var newGame = gameData.game().copyGame();
-                                    try {
-                                        newGame.makeMove(move);
-                                        var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), newGame);
-                                        dataAccess.addGame(newGameData);
-                                        var load = new ServerLoadGame(newGameData);
-                                        connections.broadcast(newGameData.gameID(), null, load);
-                                        var msg = new ServerNotification(String.format("%s made their move %s to %s.", user, move.getStartPosition().toString(), move.getEndPosition().toString()));
-                                        connections.broadcast(gameID, session, msg);
-                                    } catch (InvalidMoveException ex) {
-                                        var error = new ServerError("Invalid move.");
-                                        connections.send(session, error);
-                                    }
-                                } else {
-                                    var error = new ServerError("That is not your piece.");
-                                    connections.send(session, error);
-                                }
-                            } else {
-                                var error = new ServerError("It is not your turn.");
-                                connections.send(session, error);
-                            }
-                        } else {
-                            var message = gameData.game().isInCheckmate(turn) ? "You are in checkmate. " : "You are in stalemate. ";
-                            var error = new ServerError(message + "The game is over.");
-                            connections.send(session, error);
-                        }
-                    } else {
-                        var error = new ServerError("The game is over.");
-                        connections.send(session, error);
-                    }
-                } else {
-                    var error = new ServerError("Game does not exist!");
-                    connections.send(session, error);
-                }
-            } else {
-                var error = new ServerError("unauthorized");
+            // check user, game, observer, piece, move
+            checkAuth(authToken);
+            checkGame(gameID);
+            checkGameEnded(gameID);
+            checkObserver(authToken,gameID);
+            checkOwnership(authToken, gameID, move.getStartPosition());
+            checkMove(authToken, gameID, move);
+
+            var gameData = dataAccess.getGameFromID(gameID);
+            var turn = gameData.game().getTeamTurn();
+            var user = dataAccess.getAuthUser(authToken);
+            var blackPlayer = gameData.blackUsername();
+            var whitePlayer = gameData.whiteUsername();
+            var pieceColor = gameData.game().getBoard().getPiece(move.getStartPosition()).getTeamColor();
+            var newGame = gameData.game().copyGame();
+
+            try {
+                newGame.makeMove(move);
+                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), newGame);
+                dataAccess.addGame(newGameData);
+                var load = new ServerLoadGame(newGameData);
+                connections.broadcast(newGameData.gameID(), null, load);
+                var msg = new ServerNotification(String.format("%s made their move %s to %s.", user, move.getStartPosition().toString(), move.getEndPosition().toString()));
+                connections.broadcast(gameID, session, msg);
+            } catch (InvalidMoveException ex) {
+                var error = new ServerError("Invalid move.");
                 connections.send(session, error);
             }
-        } catch (Exception ex) {
+        } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
+        } catch (Exception ex) {
+            var error = new ServerError(ex.getMessage());
+            connections.send(session, error);
         }
     }
 
     private void leave(String authToken, Integer gameID, Session session) throws IOException {
         try {
+            // check user, game
+            checkAuth(authToken);
+            checkGame(gameID);
             var user = dataAccess.getAuthUser(authToken);
-            if (user != null) {
-                var gameData = dataAccess.getGameFromID(gameID);
-                if (gameData != null) {
-                    var blackPlayer = gameData.blackUsername();
-                    var whitePlayer = gameData.whiteUsername();
-                    if (user.equals(whitePlayer)) {
-                        var notification = new ServerNotification(String.format("White player %s left the game.", user));
-                        connections.broadcast(gameID, session, notification);
-                    } else if (user.equals(blackPlayer)) {
-                        var notification = new ServerNotification(String.format("Black player %s left the game.", user));
-                        connections.broadcast(gameID, session, notification);
-                    } else {
-                        var notification = new ServerNotification(String.format("%s stopped observing the game.", user));
-                        connections.broadcast(gameID, session, notification);
-                    }
-                    dataAccess.joinGame(gameID, null, authToken);
-                    connections.remove(gameID, session);
-                } else {
-                var error = new ServerError("Game does not exist!");
-                connections.send(session, error);
-                }
-            } else {
-                var error = new ServerError("unauthorized");
-                connections.send(session, error);
+            var gameData = dataAccess.getGameFromID(gameID);
+            var blackPlayer = gameData.blackUsername();
+            var whitePlayer = gameData.whiteUsername();
+
+            try {
+                checkObserver(authToken, gameID);
+            } catch (Exception ex) {
+                var notification = new ServerNotification(String.format("%s stopped observing the game.", user));
+                connections.broadcast(gameID, session, notification);
             }
-        } catch (Exception ex) {
+
+            if (user.equals(whitePlayer)) {
+                var notification = new ServerNotification(String.format("White player %s left the game.", user));
+                connections.broadcast(gameID, session, notification);
+            }
+            if (user.equals(blackPlayer)) {
+                var notification = new ServerNotification(String.format("Black player %s left the game.", user));
+                connections.broadcast(gameID, session, notification);
+            }
+            dataAccess.joinGame(gameID, "leave", authToken);
+            connections.remove(gameID, session);
+        } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
+        } catch (Exception ex) {
+            var error = new ServerError(ex.getMessage());
+            connections.send(session, error);
         }
     }
 
     private void resign(String authToken, Integer gameID, Session session) throws IOException {
         try {
-        var user = dataAccess.getAuthUser(authToken);
-            if (user != null) {
-                var gameData = dataAccess.getGameFromID(gameID);
-                if (gameData != null) {
-                    if (!gameData.game().checkGameFinished()) {
-                        var blackPlayer = gameData.blackUsername();
-                        var whitePlayer = gameData.whiteUsername();
-                        if (user.equals(whitePlayer)) {
-                            var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
-                            newGameData.game().setGameFinished(true);
-                            dataAccess.addGame(newGameData);
-                            var notification = new ServerNotification(String.format("White player %s resigned.", user));
-                            connections.broadcast(gameID, null, notification);
-                        } else if (user.equals(blackPlayer)) {
-                            var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
-                            newGameData.game().setGameFinished(true);
-                            dataAccess.addGame(newGameData);
-                            var notification = new ServerNotification(String.format("Black player %s resigned.", user));
-                            connections.broadcast(gameID, null, notification);
-                        } else {
-                            var error = new ServerError("non-players cannot resign.");
-                            connections.send(session, error);
-                        }
-                    } else {
-                        var error = new ServerError("Game is already over!");
-                        connections.send(session, error);
-                    }
-                } else {
-                    var error = new ServerError("Game does not exist!");
-                    connections.send(session, error);
-                }
-            } else {
-                var error = new ServerError("unauthorized");
-                connections.send(session, error);
+            // check user, game, ended, observer
+            checkAuth(authToken);
+            checkGame(gameID);
+            checkGameEnded(gameID);
+            checkObserver(authToken, gameID);
+            var user = dataAccess.getAuthUser(authToken);
+            var gameData = dataAccess.getGameFromID(gameID);
+            var blackPlayer = gameData.blackUsername();
+            var whitePlayer = gameData.whiteUsername();
+
+            if (user.equals(whitePlayer)) {
+                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                newGameData.game().setGameFinished(true);
+                dataAccess.addGame(newGameData);
+                var notification = new ServerNotification(String.format("White player %s resigned.", user));
+                connections.broadcast(gameID, null, notification);
+            } else if (user.equals(blackPlayer)) {
+                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                newGameData.game().setGameFinished(true);
+                dataAccess.addGame(newGameData);
+                var notification = new ServerNotification(String.format("Black player %s resigned.", user));
+                connections.broadcast(gameID, null, notification);
             }
-        } catch (Exception ex) {
+        } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
+        } catch (Exception ex) {
+            var error = new ServerError(ex.getMessage());
+            connections.send(session, error);
         }
     }
 
@@ -235,6 +206,68 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     public void notifyAll(Session session, String message, Integer gameID) throws IOException {
         var notification = new ServerNotification(message);
         connections.broadcast(gameID, null, notification);
+    }
+
+    private void checkAuth(String authToken) throws Exception {
+        var user = dataAccess.getAuthUser(authToken);
+        if (user == null) {
+            throw new Exception("Unauthorized");
+        }
+    }
+
+    private void checkGame(Integer gameID) throws Exception {
+        var gameData = dataAccess.getGameFromID(gameID);
+        if (gameData == null) {
+            throw new Exception("Game does not exist!");
+        }
+    }
+
+    private ChessGame.TeamColor checkPlayerColor(String authToken, Integer gameID) throws Exception {
+        checkObserver(authToken,gameID);
+        var user = dataAccess.getAuthUser(authToken);
+        var gameData = dataAccess.getGameFromID(gameID);
+        var blackPlayer = gameData.blackUsername();
+        var whitePlayer = gameData.whiteUsername();
+        var playerTeam = user.equals(whitePlayer) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+        return playerTeam;
+    }
+
+    private void checkMove(String authToken, Integer gameID, ChessMove move) throws Exception {
+        try {
+            var gameData = dataAccess.getGameFromID(gameID);
+            var game = gameData.game();
+            var testGame = game.copyGame();
+            testGame.makeMove(move);
+        } catch (InvalidMoveException ex) {
+            throw new Exception("Invalid move.");
+        }
+    }
+
+    private void checkGameEnded(Integer gameID) throws Exception {
+        var gameData = dataAccess.getGameFromID(gameID);
+        var game = gameData.game();
+        if (game.checkGameFinished()) {
+            throw new Exception("Game has ended.");
+        }
+    }
+
+    private void checkObserver(String authToken, Integer gameID) throws Exception {
+        var user = dataAccess.getAuthUser(authToken);
+        var gameData = dataAccess.getGameFromID(gameID);
+        var blackPlayer = gameData.blackUsername();
+        var whitePlayer = gameData.whiteUsername();
+        if (!user.equals(blackPlayer) && !user.equals(whitePlayer)) {
+            throw new Exception("You cannot do that as an observer.");
+        }
+    }
+
+    private void checkOwnership(String authToken, Integer gameID, ChessPosition position) throws Exception {
+        var gameData = dataAccess.getGameFromID(gameID);
+        var pieceColor = gameData.game().getBoard().getPiece(position).getTeamColor();
+        var player = checkPlayerColor(authToken, gameID);
+        if (pieceColor != player) {
+            throw new Exception("That is not your piece.");
+        }
     }
 
 }

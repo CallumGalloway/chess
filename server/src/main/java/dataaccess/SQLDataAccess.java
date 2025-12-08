@@ -125,7 +125,7 @@ public class SQLDataAccess implements DataAccess {
         String user = getAuthUser(auth);
 
         String statement = "UPDATE games SET json = ? WHERE id = ?";
-        if (color == null && (user.equals(game.whiteUsername()) || user.equals(game.blackUsername()))) {
+        if (color.equals("leave") && (user.equals(game.whiteUsername()) || user.equals(game.blackUsername()))) {
             if (user.equals(game.whiteUsername())) {
                 game = getGameFromID(gameID);
                 GameData updated = new GameData(gameID, null, game.blackUsername(), game.gameName(), game.game());
