@@ -116,7 +116,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 dataAccess.addGame(newGameData);
                 var load = new ServerLoadGame(newGameData);
                 connections.broadcast(newGameData.gameID(), null, load);
-                var msg = new ServerNotification(String.format("%s made their move %s to %s.", user, move.getStartPosition().toString(), move.getEndPosition().toString()));
+                var msg = new ServerNotification(
+                        String.format("%s made their move %s to %s.", user,
+                                move.getStartPosition().toString(), move.getEndPosition().toString()));
                 connections.broadcast(gameID, session, msg);
             } catch (InvalidMoveException ex) {
                 var error = new ServerError("Invalid move.");
@@ -178,13 +180,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             var whitePlayer = gameData.whiteUsername();
 
             if (user.equals(whitePlayer)) {
-                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(),
+                        gameData.gameName(), gameData.game().copyGame());
                 newGameData.game().setGameFinished(true);
                 dataAccess.addGame(newGameData);
                 var notification = new ServerNotification(String.format("White player %s resigned.", user));
                 connections.broadcast(gameID, null, notification);
             } else if (user.equals(blackPlayer)) {
-                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game().copyGame());
+                var newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(),
+                        gameData.gameName(), gameData.game().copyGame());
                 newGameData.game().setGameFinished(true);
                 dataAccess.addGame(newGameData);
                 var notification = new ServerNotification(String.format("Black player %s resigned.", user));

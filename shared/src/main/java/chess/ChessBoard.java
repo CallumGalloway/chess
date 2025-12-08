@@ -96,7 +96,9 @@ public class ChessBoard {
                     ChessPiece copiedPiece = piece.copy();
                     copy.squares[row][col] = copiedPiece;
                 }
-                else copy.squares[row][col] = null;
+                else {
+                    copy.squares[row][col] = null;
+                }
             }
         }
 

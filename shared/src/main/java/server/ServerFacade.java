@@ -76,7 +76,9 @@ public class ServerFacade {
                 var response = sendRequest(request);
                 var game = handleResponse(response, GameData.class);
                 return "game created: " + params[0] + ", with ID: " + game.gameID();
-            } else throw new Exception("Bad Request");
+            } else {
+                throw new Exception("Bad Request");
+            }
         }
         throw new Exception("Expected: <NAME>\n");
     }

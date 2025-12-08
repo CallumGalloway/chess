@@ -184,9 +184,15 @@ public class Client implements NotificationHandler {
                     }
                 }
                 //in-game
-                case "move" -> state == State.IN_GAME ? ws.makeMove(server.authToken, currentGame.gameID(), params) : "You must be playing a game to do that!";
-                case "resign" -> state == State.IN_GAME ? resignHandler(out, server.authToken, currentGame.gameID()) : "You must be playing a game to do that!";
-//                case "highlight" -> state == State.IN_GAME ? highlight(out, joinData, currentGame, params) : "You must be playing a game to do that!";
+                case "move" -> state == State.IN_GAME ?
+                        ws.makeMove(server.authToken, currentGame.gameID(), params) :
+                        "You must be playing a game to do that!";
+                case "resign" -> state == State.IN_GAME ?
+                        resignHandler(out, server.authToken, currentGame.gameID()) :
+                        "You must be playing a game to do that!";
+//                case "highlight" -> state == State.IN_GAME ?
+//                highlight(out, joinData, currentGame, params) :
+//                "You must be playing a game to do that!";
                 //observing
                 case "leave" -> {
                     //state == State.IN_GAME || state == State.OBSERVING ? ws.leave() : "You must be in a game to do that!";
@@ -200,7 +206,9 @@ public class Client implements NotificationHandler {
                         yield "You must be in a game to do that!";
                     }
                 }
-                case "redraw" -> state == State.IN_GAME || state == State.OBSERVING ? displayGame(out, this.joinData ,currentGame) : "You must be in a game to do that!";
+                case "redraw" -> state == State.IN_GAME || state == State.OBSERVING ?
+                        displayGame(out, this.joinData ,currentGame) :
+                        "You must be in a game to do that!";
 
                 default -> displayHelp();
             };

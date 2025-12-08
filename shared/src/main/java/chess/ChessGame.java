@@ -173,12 +173,16 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         // must start in check
-        if (!(isInCheck(teamColor))) return false;
+        if (!(isInCheck(teamColor))) {
+            return false;
+        }
         if (getTeamMoves(teamColor).size() == 0) {
             setGameFinished(true);
             return true;
         }
-        else return false;
+        else {
+            return false;
+        }
     }
 
 
@@ -191,12 +195,16 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         // must not be in check
-        if (isInCheck(teamColor)) return false;
+        if (isInCheck(teamColor)) {
+            return false;
+        }
         if (getTeamMoves(teamColor).size() == 0) {
             setGameFinished(true);
             return true;
         }
-        else return false;
+        else {
+            return false;
+        }
     }
 
     /**
