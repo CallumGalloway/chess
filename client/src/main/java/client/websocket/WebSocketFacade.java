@@ -124,7 +124,7 @@ public class WebSocketFacade extends Endpoint {
                 return new ChessPosition(row, col);
             }
         }
-        return null; // Return null if invalid
+        return null;
     }
 
     public ChessMove posToMove(ChessPosition startPos, ChessPosition endPos) {

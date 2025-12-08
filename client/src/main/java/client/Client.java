@@ -1,5 +1,6 @@
 package client;
 
+import chess.*;
 import client.websocket.*;
 import datamodel.*;
 import server.ServerFacade;
@@ -80,7 +81,8 @@ public class Client implements NotificationHandler {
         switch (notification.getServerMessageType()) {
             case LOAD_GAME -> {
                 ServerLoadGame game = (ServerLoadGame) notification;
-                BoardDisplay.printCurrentBoard(out, myColor, game.getGameData().game());
+                currentGame = game.getGameData();
+                BoardDisplay.printCurrentBoard(out, myColor, currentGame.game(), null);
                 displayPrompt();
             }
             case ERROR -> {
@@ -190,9 +192,9 @@ public class Client implements NotificationHandler {
                 case "resign" -> state == State.IN_GAME ?
                         resignHandler(out, server.authToken, currentGame.gameID()) :
                         "You must be playing a game to do that!";
-//                case "highlight" -> state == State.IN_GAME ?
-//                highlight(out, joinData, currentGame, params) :
-//                "You must be playing a game to do that!";
+                case "highlight" -> state == State.IN_GAME ?
+                        highlight(out, joinData, currentGame, params) :
+                        "You must be playing a game to do that!";
                 //observing
                 case "leave" -> {
                     //state == State.IN_GAME || state == State.OBSERVING ? ws.leave() : "You must be in a game to do that!";
@@ -260,15 +262,25 @@ public class Client implements NotificationHandler {
     }
 
     private String displayGame(PrintStream out, JoinData joinData, GameData gameData) throws Exception {
-        BoardDisplay.printCurrentBoard(out, joinData.playerColor(), gameData.game());
+        BoardDisplay.printCurrentBoard(out, joinData.playerColor(), gameData.game(), null);
         return "";
     }
 
-//    private String highlight(PrintStream out, JoinData joinData, GameData gameData, String[] target) throws Exception {
-//        ChessPosition piece = null;
-//        BoardDisplay.drawHighlightedBoard(out, joinData.playerColor(), gameData.game(), piece);
-//        return "";
-//    }
+    private String highlight(PrintStream out, JoinData joinData, GameData gameData, String[] target) throws Exception {
+        ChessPosition position = ws.toPosition(target[0]);
+        if (position == null) {
+            out.print(SET_TEXT_COLOR_TURQUOISE + "That is not a valid coordinate.\n");
+        } else {
+            ChessPiece piece = gameData.game().board.getPiece(position);
+            if (piece != null) {
+                BoardDisplay.printCurrentBoard(out, joinData.playerColor(), gameData.game(), position);
+            } else {
+                out.print(SET_TEXT_COLOR_TURQUOISE + "There isn't a piece there.\n");
+            }
+        }
+
+        return "";
+    }
 
     private String resignHandler(PrintStream out, String auth, Integer gameID) throws Exception {
         out.print(SET_TEXT_COLOR_RED + "Are you sure you want to resign? (yes/no) >>> ");

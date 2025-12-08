@@ -6,7 +6,9 @@ import datamodel.JoinData;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static ui.EscapeSequences.*;
@@ -25,10 +27,10 @@ public class BoardDisplay {
         } catch (Exception ex) {
 
         }
-        printCurrentBoard(out, "BLACK", game);
+        printCurrentBoard(out, "BLACK", game, null);
     }
 
-    public static void printCurrentBoard(PrintStream out, String color, ChessGame game){
+    public static void printCurrentBoard(PrintStream out, String color, ChessGame game, ChessPosition target) {
         List<String> rows = Arrays.asList(" 8\u2003"," 7\u2003"," 6\u2003"," 5\u2003"," 4\u2003"," 3\u2003"," 2\u2003"," 1\u2003");
         List<String> cols = Arrays.asList(" a\u2003"," b\u2003"," c\u2003"," d\u2003"," e\u2003"," f\u2003"," g\u2003"," h\u2003");
         out.print("\n");
@@ -60,7 +62,7 @@ public class BoardDisplay {
                 out.print(SET_TEXT_BOLD);
                 out.print(rows.get(row-2));
                 out.print(RESET_TEXT_BOLD_FAINT);
-                drawRow(out,row-1, game, color);
+                drawRow(out,row-1, game, color, target);
                 out.print(SET_BG_COLOR_BIRCH);
                 out.print(SET_TEXT_COLOR_BLACK);
                 out.print(SET_TEXT_BOLD);
@@ -73,22 +75,54 @@ public class BoardDisplay {
         }
     }
 
-    public static void drawRow(PrintStream out, int row, ChessGame game, String color){
+    public static void drawRow(PrintStream out, int row, ChessGame game, String color, ChessPosition target) {
         var board = game.getBoard();
         ChessPosition position = null;
         ChessPiece.PieceType piece = null;
         ChessGame.TeamColor pieceColor = null;
-        if (! color.equals("BLACK")) {
-            board = switchView(board);
+
+        Collection<ChessMove> valid = new ArrayList<>();
+
+
+        if (target != null) {
+            valid = game.validMoves(target);
         }
+        if (color.equals("WHITE")) {
+            board = switchView(board);
+            valid = invertMoves(valid);
+            if (target != null) {
+                var inverseTarget = new ChessPosition(9 - target.getRow(), 9 - target.getColumn());
+                target = inverseTarget;
+            }
+        }
+
         var squareColor = row % 2 == 0 ? "light" : "dark";
         for (int col = 1; col <= 8; col++) {
             squareColor = swapColor(squareColor);
-            switch (squareColor){
-                case "dark" -> out.print(SET_BG_COLOR_CHERRY);
-                case "light" -> out.print(SET_BG_COLOR_MIDWOOD);
-            }
             position = new ChessPosition(row, 9-col);
+            ChessMove highlight = new ChessMove(target, position, null);
+
+            var darkColor = SET_BG_COLOR_CHERRY;
+            var lightColor = SET_BG_COLOR_MIDWOOD;
+
+            if (target != null && position.equals(target)) {
+                darkColor = SET_BG_COLOR_DARK_GREEN;
+                lightColor = SET_BG_COLOR_LIGHT_GREEN;
+            }
+            if (!valid.isEmpty()) {
+                for (ChessMove move : valid) {
+                    if (move.equals(highlight)) {
+                        darkColor = SET_BG_COLOR_DARK_GREEN;
+                        lightColor = SET_BG_COLOR_LIGHT_GREEN;
+                    }
+                }
+            }
+
+            switch (squareColor){
+                case "dark" -> out.print(darkColor);
+                case "light" -> out.print(lightColor);
+            }
+
             if (board.getPiece(position)==null) {
                 out.print(EMPTY);
             } else {
@@ -119,11 +153,11 @@ public class BoardDisplay {
         }
     }
 
-    static String swapColor(String color){
+    static String swapColor(String color) {
         return color.equals("dark") ? "light" : "dark";
     }
 
-    static ChessBoard switchView(ChessBoard board){
+    static ChessBoard switchView(ChessBoard board) {
         ChessBoard newBoard = new ChessBoard();
         for (int row = 1; row <=8; row++){
             for (int col = 1; col <=8; col++){
@@ -135,8 +169,17 @@ public class BoardDisplay {
         return newBoard;
     }
 
-    public static void drawHighlightedBoard(PrintStream out, String color, ChessGame game, ChessPosition target) {
-
+    static Collection<ChessMove> invertMoves(Collection<ChessMove> moves) {
+        ArrayList<ChessMove> newMoves = new ArrayList<>();
+        for (ChessMove move : moves) {
+            ChessPosition start = move.getStartPosition();
+            ChessPosition end = move.getEndPosition();
+            ChessPosition newStart = new ChessPosition(9-start.getRow(), 9-start.getColumn());
+            ChessPosition newEnd = new ChessPosition(9- end.getRow(), 9-end.getColumn());
+            ChessMove newMove = new ChessMove(newStart, newEnd, null);
+            newMoves.add(newMove);
+        }
+        return newMoves;
     }
 
 }
