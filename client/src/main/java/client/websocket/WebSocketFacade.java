@@ -69,12 +69,16 @@ public class WebSocketFacade extends Endpoint {
     }
 
     public String makeMove(String auth, Integer gameID, String[] params) throws Exception {
-        ChessPosition startPos = toPosition(params[0]);
-        ChessPosition endPos = toPosition(params[1]);
-        ChessMove move = posToMove(startPos, endPos);
-        var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, auth, gameID, move);
-        this.session.getBasicRemote().sendText(new Gson().toJson(command));
-        return "";
+        if (params.length >1) {
+            ChessPosition startPos = toPosition(params[0]);
+            ChessPosition endPos = toPosition(params[1]);
+            ChessMove move = posToMove(startPos, endPos);
+            var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, auth, gameID, move);
+            this.session.getBasicRemote().sendText(new Gson().toJson(command));
+            return "";
+        } else {
+            throw new Exception("Expected: <START> <END>");
+        }
     }
 
     public String resign(String auth, Integer gameID) throws Exception {
@@ -104,7 +108,7 @@ public class WebSocketFacade extends Endpoint {
                 return serializer.fromJson(jsonString, ServerNotification.class);
             }
             case "ERROR" -> {
-                return serializer.fromJson(jsonString, ServerNotification.class);
+                return serializer.fromJson(jsonString, ServerError.class);
             }
             default -> {
                 return serializer.fromJson(jsonString, ServerMessage.class);

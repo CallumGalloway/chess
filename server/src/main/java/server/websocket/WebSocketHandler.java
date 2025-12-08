@@ -100,6 +100,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             checkGameEnded(gameID);
             checkObserver(authToken,gameID);
             checkOwnership(authToken, gameID, move.getStartPosition());
+            checkTurn(authToken, gameID);
             checkMove(authToken, gameID, move);
 
             var gameData = dataAccess.getGameFromID(gameID);
@@ -234,6 +235,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var whitePlayer = gameData.whiteUsername();
         var playerTeam = user.equals(whitePlayer) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
         return playerTeam;
+    }
+
+    private void checkTurn(String authToken, Integer gameID) throws Exception {
+        var gameData = dataAccess.getGameFromID(gameID);
+        var team = checkPlayerColor(authToken, gameID);
+        if (!gameData.game().getTeamTurn().equals(team)) {
+            throw new Exception("It is not your turn.");
+        }
     }
 
     private void checkMove(String authToken, Integer gameID, ChessMove move) throws Exception {

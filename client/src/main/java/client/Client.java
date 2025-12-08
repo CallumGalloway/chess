@@ -86,13 +86,13 @@ public class Client implements NotificationHandler {
                 displayPrompt();
             }
             case ERROR -> {
-                ServerNotification error = (ServerNotification) notification;
-                out.print(SET_TEXT_COLOR_RED + "Error: " + error.getMessage());
+                ServerError error = (ServerError) notification;
+                out.print(SET_TEXT_COLOR_RED + "Error: " + error.getErrorMessage() + "\n");
                 displayPrompt();
             }
             case NOTIFICATION -> {
                 ServerNotification notify = (ServerNotification) notification;
-                out.print(SET_TEXT_COLOR_ORANGE + notify.getMessage());
+                out.print(SET_TEXT_COLOR_ORANGE + notify.getMessage() + "\n");
                 displayPrompt();
             }
         }
