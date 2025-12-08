@@ -136,6 +136,8 @@ public class Client implements NotificationHandler {
             out.print(SET_TEXT_COLOR_TURQUOISE + SET_TEXT_BOLD + "Commands available:\n" + RESET_TEXT_BOLD_FAINT);
             out.print(SET_TEXT_COLOR_WHITE + "help -- show this info screen\n");
             out.print(SET_TEXT_COLOR_SILVER + "leave -- leave the current game\n");
+            out.print(SET_TEXT_COLOR_WHITE + "highlight <POSITION> -- highlights the valid moves for a selected piece\n");
+            out.print(SET_TEXT_COLOR_SILVER + "redraw -- display the board\n");
         }
         return "";
     }

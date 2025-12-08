@@ -82,7 +82,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.add(gameID, session);
             var message = new ServerLoadGame(game);
             connections.send(session, message);
-            connections.broadcast(gameID, session, new ServerNotification(String.format("Player %s joined the game.", user)));
+            try {
+                String color = checkPlayerColor(authToken, gameID) == ChessGame.TeamColor.WHITE ? "White" : "Black";
+                connections.broadcast(gameID, session, new ServerNotification(
+                        String.format("Player %s joined the game as %s.", user, color)));
+            } catch (Exception ex) {
+                String color = "Observer";
+                connections.broadcast(gameID, session, new ServerNotification(
+                        String.format("Player %s joined the game as %s.", user, color)));
+            }
 
         } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
