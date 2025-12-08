@@ -87,7 +87,7 @@ public class BoardDisplay {
         if (target != null) {
             valid = game.validMoves(target);
         }
-        if (color.equals("WHITE")) {
+        if (!color.equals("BLACK")) {
             board = switchView(board);
             valid = invertMoves(valid);
             if (target != null) {

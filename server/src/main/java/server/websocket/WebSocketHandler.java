@@ -94,14 +94,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws IOException {
         try {
-            // check user, game, observer, piece, move
+            // check user, game, observer, piece
             checkAuth(authToken);
             checkGame(gameID);
             checkGameEnded(gameID);
             checkObserver(authToken,gameID);
-            checkOwnership(authToken, gameID, move.getStartPosition());
             checkTurn(authToken, gameID);
             checkMove(authToken, gameID, move);
+            checkOwnership(authToken, gameID, move.getStartPosition());
 
             var gameData = dataAccess.getGameFromID(gameID);
             var turn = gameData.game().getTeamTurn();
@@ -119,12 +119,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 connections.broadcast(newGameData.gameID(), null, load);
                 var msg = new ServerNotification(
                         String.format("%s made their move %s to %s.", user,
-                                move.getStartPosition().toString(), move.getEndPosition().toString()));
+                                coordToReadable(move.getStartPosition()), coordToReadable(move.getEndPosition())));
                 connections.broadcast(gameID, session, msg);
             } catch (InvalidMoveException ex) {
                 var error = new ServerError("Invalid move.");
                 connections.send(session, error);
             }
+
+            //check and checkmate messages
+            try {
+                checkMate(gameID);
+            } catch (Exception ex) {
+                var msg = new ServerNotification(ex.getMessage());
+                connections.broadcast(gameID, null, msg);
+            }
+
         } catch (DataAccessException ex) {
             throw new IOException(ex.getMessage());
         } catch (Exception ex) {
@@ -250,8 +259,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             var gameData = dataAccess.getGameFromID(gameID);
             var game = gameData.game();
             var testGame = game.copyGame();
+            if (move == null) {
+                throw new Exception("Invalid Coordinates");
+            }
             testGame.makeMove(move);
-        } catch (InvalidMoveException ex) {
+        } catch (Exception ex) {
             throw new Exception("Invalid move.");
         }
     }
@@ -281,6 +293,33 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (pieceColor != player) {
             throw new Exception("That is not your piece.");
         }
+    }
+
+    private void checkMate(Integer gameID) throws Exception {
+        var gameData = dataAccess.getGameFromID(gameID);
+        var game = gameData.game();
+        if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            throw new Exception("White player is in Checkmate.");
+        }
+        if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            throw new Exception("Black player is in Checkmate.");
+        }
+        if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+            throw new Exception("White player is in Check.");
+        }
+        if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            throw new Exception("Black player is in Check.");
+        }
+    }
+
+    private String coordToReadable(ChessPosition position) {
+        var string = position.toString();
+        int colIndex = Character.getNumericValue(string.charAt(0));
+        int rowIndex = Character.getNumericValue(string.charAt(1));
+
+        char colChar = (char) ('a' + colIndex - 1);
+
+        return String.valueOf(colChar) + rowIndex;
     }
 
 }

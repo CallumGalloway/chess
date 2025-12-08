@@ -192,13 +192,13 @@ public class Client implements NotificationHandler {
                 case "resign" -> state == State.IN_GAME ?
                         resignHandler(out, server.authToken, currentGame.gameID()) :
                         "You must be playing a game to do that!";
-                case "highlight" -> state == State.IN_GAME ?
+                case "highlight" -> state == State.IN_GAME || state == State.OBSERVING ?
                         highlight(out, joinData, currentGame, params) :
                         "You must be playing a game to do that!";
                 //observing
                 case "leave" -> {
                     //state == State.IN_GAME || state == State.OBSERVING ? ws.leave() : "You must be in a game to do that!";
-                    if (state == State.IN_GAME) {
+                    if (state == State.IN_GAME || state == State.OBSERVING) {
                         ws.leave(server.authToken, server.gameID);
                         server.gameID = null;
                         server.state = State.SIGNED_IN;
